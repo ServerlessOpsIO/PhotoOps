@@ -43,7 +43,8 @@ deploy-pipeline:
 		--resolve-s3 \
 		--template codepipeline.yaml \
 		--stack-name $(PIPELINE_STACKNAME) \
-		--parameter-overrides ServiceEnv=$(ENV) FeatureGitBranch=$(BRANCH)
+		--parameter-overrides \
+			FeatureGitBranch=$(BRANCH) \
 
 describe:
 	$(info Describing stack)
