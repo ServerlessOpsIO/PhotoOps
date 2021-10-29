@@ -213,29 +213,29 @@ Resources:
                   RoleArn: !Ref DevCloudFormationExecutionRole
                   StackName:
                     'Fn::Transform':
-                      - Name: String
-                        Parameters:
-                          Operation: Regex
-                          InputString: !Sub "${AppName}-${FeatureGitBranch}"
-                          Match: '[/_]'
-                          Replace: '-'
+                      Name: String
+                      Parameters:
+                        Operation: Regex
+                        InputString: !Sub "${AppName}-${FeatureGitBranch}"
+                        Match: '[/_]'
+                        Replace: '-'
                   ChangeSetName:
                     'Fn::Transform':
-                      - Name: String
-                        Parameters:
-                          Operation: Regex
-                          InputString: !Sub "${AppName}-${FeatureGitBranch}-ChangeSet"
-                          Match: '[/_]'
-                          Replace: '-'
+                      Name: String
+                      Parameters:
+                        Operation: Regex
+                        InputString: !Sub "${AppName}-${FeatureGitBranch}-ChangeSet"
+                        Match: '[/_]'
+                        Replace: '-'
                   TemplatePath: 'BuildArtifactAsZip::packaged.yaml'
                   ParameterOverrides:
                     'Fn::Transform':
-                      - Name: String
-                        Parameters:
-                          Operation: Regex
-                          InputString: !Sub '{ "ServiceEnv": "${FeatureGitBranch}" }'
-                          Match: '[/_]'
-                          Replace: '-'
+                      Name: String
+                      Parameters:
+                        Operation: Regex
+                        InputString: !Sub '{ "ServiceEnv": "${FeatureGitBranch}" }'
+                        Match: '[/_]'
+                        Replace: '-'
                   Capabilities: CAPABILITY_NAMED_IAM
                 InputArtifacts:
                   - Name: BuildArtifactAsZip
@@ -253,29 +253,29 @@ Resources:
                   RoleArn: !Ref DevCloudFormationExecutionRole
                   StackName:
                     'Fn::Transform':
-                      - Name: String
-                        Parameters:
-                          Operation: Regex
-                          InputString: !Sub "${AppName}-${FeatureGitBranch}"
-                          Match: '[/_]'
-                          Replace: '-'
+                      Name: String
+                      Parameters:
+                        Operation: Regex
+                        InputString: !Sub "${AppName}-${FeatureGitBranch}"
+                        Match: '[/_]'
+                        Replace: '-'
                   ChangeSetName:
                     'Fn::Transform':
-                      - Name: String
+                      Name: String
+                      Parameters:
+                        Operation: Regex
+                        InputString: !Sub "${AppName}-${FeatureGitBranch}-ChangeSet"
+                        Match: '[/_]'
+                        Replace: '-'
+                OutputArtifacts:
+                  - Name:
+                      'Fn::Transform':
+                        Name: String
                         Parameters:
                           Operation: Regex
                           InputString: !Sub "${AppName}-${FeatureGitBranch}-ChangeSet"
                           Match: '[/_]'
                           Replace: '-'
-                OutputArtifacts:
-                  - Name:
-                      'Fn::Transform':
-                        - Name: String
-                          Parameters:
-                            Operation: Regex
-                            InputString: !Sub "${AppName}-${FeatureGitBranch}-ChangeSet"
-                            Match: '[/_]'
-                            Replace: '-'
                 RoleArn: !Ref DevPipelineExecutionRole
           - !Ref AWS::NoValue
 
