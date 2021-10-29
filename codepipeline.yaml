@@ -50,49 +50,31 @@ Parameters:
     Default: "us-east-1"
   BuildPipelineArtifactsBucket:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/cicd/tom/ArtifactsBucket"
+    Default: "/codepipeline-build-prime/ArtifactsBucket"
   BuildPipelineArtifactsKmsKey:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/cicd/tom/ArtifactsBucketKmsKey"
-  BuildCloudFormationExecutionRole:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/cicd/tom/CfnExecutionRoleArn"
+    Default: "/codepipeline-build-prime/ArtifactsBucketKmsKey"
   BuildPipelineExecutionRole:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/cicd/tom/PipelineExecutionRoleArn"
+    Default: "/codepipeline-build-prime/BuildPipelineExecutionRoleArn"
+  BuildCloudFormationExecutionRole:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/codepipeline-build-prime/BuildCfnExecutionRoleArn"
   DevPipelineExecutionRole:
-    Type: String
-    Default: "arn:aws:iam::355364402302:role/aws-codepipeline-cicd-resour-PipelineExecutionRole-BZZ9KLGJTB42"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/codepipeline-build-prime/DevPipelineExecutionRoleArn"
   DevCloudFormationExecutionRole:
-    Type: String
-    Default: "arn:aws:iam::355364402302:role/aws-codepipeline-cicd-res-CloudFormationExecutionR-1MR33J9WCUMXZ"
-  DevArtifactBucket:
-    Type: String
-    Default: "aws-sam-cli-managed-dev-pipeline-artifactsbucket-1hpjuwnjjfe27"
-  DevImageRepository:
-    Type: String
-    # If there are functions with "Image" PackageType in your template,
-    # Update the line below with image repository URL and add "--image-repository ${PROD_IMAGE_REPOSITORY}" to
-    # prod "sam package" and "sam deploy" commands in buildspec files (in pipeline/).
-    Default: ""
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/codepipeline-build-prime/DevCfnExecutionRoleArn"
   ProdPipelineExecutionRole:
-    Type: String
-    Default: "arn:aws:iam::641494176294:role/aws-sam-cli-managed-prod-pip-PipelineExecutionRole-BGAA6NDIWB6B"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/codepipeline-build-prime/ProdPipelineExecutionRoleArn"
   ProdCloudFormationExecutionRole:
-    Type: String
-    Default: "arn:aws:iam::641494176294:role/aws-sam-cli-managed-prod-CloudFormationExecutionR-5BO63A8DH76T"
-  ProdArtifactBucket:
-    Type: String
-    Default: "aws-sam-cli-managed-prod-pipeline-artifactsbucket-1dt5yn3hovxd5"
-  ProdImageRepository:
-    Type: String
-    # If there are functions with "Image" PackageType in your template,
-    # Update the line below with image repository URL and add "--image-repository ${PROD_IMAGE_REPOSITORY}" to
-    # prod "sam package" and "sam deploy" commands in buildspec files (in pipeline/).
-    Default: ""
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/codepipeline-build-prime/ProdCfnExecutionRoleArn"
   CodeStarConnectionArn:
-    Type: String
-    Default: "/cicd/tom/CodeStarConnectionArn"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/codepipeline-build-prime/CodeStarConnectionArn"
   # FeatureGitBranch is required for pipelines for feature branches
   FeatureGitBranch:
     Type: String

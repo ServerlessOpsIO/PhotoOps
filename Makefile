@@ -43,7 +43,7 @@ deploy-pipeline:
 		--resolve-s3 \
 		--template codepipeline.yaml \
 		--stack-name $(PIPELINE_STACKNAME) \
-		--parameter-overrides ServiceEnv=$(ENV) FeatureGitBranch=$(BRANCH) CodeStarConnectionArn="arn:aws:codestar-connections:us-east-1:346402060170:connection/0628e0e2-2afe-48bf-8705-f66170a6a41e"
+		--parameter-overrides ServiceEnv=$(ENV) FeatureGitBranch=$(BRANCH)
 
 describe:
 	$(info Describing stack)
