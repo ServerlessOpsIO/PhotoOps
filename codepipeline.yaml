@@ -121,7 +121,7 @@ Resources:
               Configuration:
                 ConnectionArn: !Ref CodeStarConnectionArn
                 FullRepositoryId: !Ref FullRepositoryId
-                BranchName: !If [IsFeatureBranchPipeline, !Ref FeatureGitBranch, !Ref MainGitBranch]
+                BranchName: !Ref GitBranch
               OutputArtifacts:
                 - Name: SourceCodeAsZip
               RunOrder: 1
@@ -306,17 +306,17 @@ Resources:
                   - Name: BuildArtifactAsZip
                 RunOrder: 1
 
-              - Name: IntegrationTest
-                ActionTypeId:
-                  Category: Test
-                  Owner: AWS
-                  Provider: CodeBuild
-                  Version: "1"
-                Configuration:
-                  ProjectName: !Ref CodeBuildProjectIntegrationTest
-                InputArtifacts:
-                  - Name: SourceCodeAsZip
-                RunOrder: 2
+#              - Name: IntegrationTest
+#                ActionTypeId:
+#                  Category: Test
+#                  Owner: AWS
+#                  Provider: CodeBuild
+#                  Version: "1"
+#                Configuration:
+#                  ProjectName: !Ref CodeBuildProjectIntegrationTest
+#                InputArtifacts:
+#                  - Name: SourceCodeAsZip
+#                RunOrder: 2
           - !Ref AWS::NoValue
 
         - !If
