@@ -316,10 +316,6 @@ Resources:
                   Version: "1"
                 Configuration:
                   ProjectName: !Ref CodeBuildProjectIntegrationTest
-                  EnvironmentVariables: !Sub |
-                    [
-                      {"name": "ENV_PIPELINE_EXECUTION_ROLE", "value": "${DevPipelineExecutionRole}"}
-                    ]
                 InputArtifacts:
                   - Name: SourceCodeAsZip
                 RunOrder: 2
