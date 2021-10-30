@@ -10,8 +10,11 @@ pr: init dev
 
 SAM_TEMPLATE ?= template.yaml
 ENV ?= ${USER}
-STACKNAME = $(shell basename ${CURDIR})-$(ENV)
+APPNAME = $(shell basename ${CURDIR})
+STACKNAME = $(APPNAME)-$(ENV)
 AWS_REGION ?= $(shell aws configure get region)
+PIPELINE_STACKNAME = $(shell basename ${CURDIR})-pipeline-$(ENV)
+BRANCH ?= 'master'
 
 check_profile:
 	# Make sure we have a user-scoped credentials profile set. We don't want to be accidentally using the default profile
@@ -31,6 +34,17 @@ validate:
 deploy: validate build
 	$(info Deploying to personal development stack)
 	sam deploy --stack-name $(STACKNAME) --region ${AWS_REGION} --resolve-s3 --parameter-overrides ServiceEnv=$(ENV)
+
+# Requires usage of PipelineUser IAM user.
+deploy-pipeline:
+	$(info Deploying to personal development stack)
+	sam deploy \
+		--region ${AWS_REGION} \
+		--resolve-s3 \
+		--template codepipeline.yaml \
+		--stack-name $(PIPELINE_STACKNAME) \
+		--parameter-overrides \
+			FeatureGitBranch=$(BRANCH) \
 
 describe:
 	$(info Describing stack)
