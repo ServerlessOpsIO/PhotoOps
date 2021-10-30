@@ -143,8 +143,7 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 ParameterOverrides: !Sub |
                   {
-                    "FeatureGitBranch": "${FeatureGitBranch}",
-                    "CodeStarConnectionArn": "${CodeStarConnectionArn}"
+                    "FeatureGitBranch": "${FeatureGitBranch}"
                   }
               InputArtifacts:
                 - Name: SourceCodeAsZip
