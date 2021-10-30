@@ -5,7 +5,7 @@ Description: >
   The following stages are predefined in this template:
   - Source
   - UpdatePipeline
-  - BuildAndDeployFeatureStack (FeatureGitBranch only)
+  - BuildAndDeployFeatureStack (Feature GitBranch only)
   - BuildAndPackage (MainGitBranch only)
   - DeployDev (MainGitBranch only)
   - DeployProd (MainGitBranch only)
@@ -22,7 +22,7 @@ Description: >
 # If later you need to deploy a new CodePipeline to connect to a non-main git branch, run
 # ```
 # sam deploy -t codepipeline.yaml --stack-name <stack-name> --capabilities=CAPABILITY_IAM \
-#   --parameter-overrides="FeatureGitBranch=<branch-name> CodeStarConnectionArn=<codestar-connection-arn>"
+#   --parameter-overrides="GitBranch=<branch-name> CodeStarConnectionArn=<codestar-connection-arn>"
 # ```
 
 
@@ -39,6 +39,9 @@ Parameters:
   FullRepositoryId:
     Type: String
     Default: "ServerlessOpsIO/PhotoOps"
+  GitBranch:
+    Type: String
+    Default: "master"
   MainGitBranch:
     Type: String
     Default: "master"
@@ -78,17 +81,13 @@ Parameters:
   CodeStarConnectionArn:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/codepipeline-build-prime/CodeStarConnectionArn"
-  # FeatureGitBranch is required for pipelines for feature branches
-  FeatureGitBranch:
-    Type: String
-    Default: ""
   TestPhotoImageBucketPath:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/PhotoOpsAI-TestImages-prime/BucketPath"
 
 
 Conditions:
-  IsMainBranchPipeline: !Equals [!Ref FeatureGitBranch, ""]
+  IsMainBranchPipeline: !Equals [!Ref GitBranch, !Ref MainGitBranch]
   IsFeatureBranchPipeline: !Not [Condition: IsMainBranchPipeline]
 
 Resources:
@@ -143,7 +142,7 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 ParameterOverrides: !Sub |
                   {
-                    "FeatureGitBranch": "${FeatureGitBranch}"
+                    "GitBranch": "${GitBranch}"
                   }
               InputArtifacts:
                 - Name: SourceCodeAsZip
@@ -218,7 +217,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${FeatureGitBranch}"
+                        InputString: !Sub "${AppName}-${GitBranch}"
                         Match: '[/_]'
                         Replace: '-'
                   ChangeSetName:
@@ -226,7 +225,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${FeatureGitBranch}-ChangeSet"
+                        InputString: !Sub "${AppName}-${GitBranch}-ChangeSet"
                         Match: '[/_]'
                         Replace: '-'
                   TemplatePath: 'BuildArtifactAsZip::packaged.yaml'
@@ -235,7 +234,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub '{ "ServiceEnv": "${FeatureGitBranch}" }'
+                        InputString: !Sub '{ "ServiceEnv": "${GitBranch}" }'
                         Match: '[/_]'
                         Replace: '-'
                   Capabilities: CAPABILITY_NAMED_IAM
@@ -258,7 +257,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${FeatureGitBranch}"
+                        InputString: !Sub "${AppName}-${GitBranch}"
                         Match: '[/_]'
                         Replace: '-'
                   ChangeSetName:
@@ -266,7 +265,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${FeatureGitBranch}-ChangeSet"
+                        InputString: !Sub "${AppName}-${GitBranch}-ChangeSet"
                         Match: '[/_]'
                         Replace: '-'
                 OutputArtifacts:
@@ -275,7 +274,7 @@ Resources:
                         Name: String
                         Parameters:
                           Operation: Regex
-                          InputString: !Sub "${AppName}-${FeatureGitBranch}-ChangeSet"
+                          InputString: !Sub "${AppName}-${GitBranch}-ChangeSet"
                           Match: '[/_]'
                           Replace: '-'
                 RoleArn: !Ref DevPipelineExecutionRole
