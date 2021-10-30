@@ -316,7 +316,7 @@ Resources:
                   StackName: !Sub "${AppName}-${DevAppEnv}"
                   ChangeSetName: !Sub "${AppName}-${GitBranch}-ChangeSet"
                 OutputArtifacts:
-                  - Name: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                  - Name: !Sub "${AppName}-${GitBranch}-Dev-ChangeSet"
                 RoleArn: !Ref DevPipelineExecutionRole
 
 #              - Name: IntegrationTest
@@ -376,7 +376,7 @@ Resources:
                   StackName: !Sub "${AppName}-${ProdAppEnv}"
                   ChangeSetName: !Sub "${AppName}-${GitBranch}-ChangeSet"
                 OutputArtifacts:
-                  - Name: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                  - Name: !Sub "${AppName}-${GitBranch}-Prod-ChangeSet"
                 RoleArn: !Ref ProdPipelineExecutionRole
           - !Ref AWS::NoValue
 
