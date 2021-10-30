@@ -60,6 +60,9 @@ Parameters:
   BuildCloudFormationExecutionRole:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/codepipeline-build-prime/BuildCfnExecutionRoleArn"
+  CodeBuildServicePolicy:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/codepipeline-build-prime/CodeBuildServicePolicyArn"
   DevPipelineExecutionRole:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/codepipeline-build-prime/DevPipelineExecutionRoleArn"
@@ -378,19 +381,10 @@ Resources:
             Principal:
               Service:
                 - codebuild.amazonaws.com
+      ManagedPolicyArns:
+        - !Ref CodeBuildServicePolicy
       Policies:
-        - PolicyName: CodeBuildLogs
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "logs:CreateLogGroup"
-                  - "logs:CreateLogStream"
-                  - "logs:PutLogEvents"
-                Resource:
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*"
-        - PolicyName: CodeBuildArtifactsBucket
+        - PolicyName: TestImages
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -399,62 +393,10 @@ Resources:
                   - "s3:GetObject"
                   - "s3:GetObjectVersion"
                   - "s3:PutObject"
-                Resource:
-                  - !Sub "arn:aws:s3:::${BuildPipelineArtifactsBucket}/*"
-        - PolicyName: ListTestImages
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
                   - "s3:List*"
                 Resource:
                   - !Join ['', ["arn:aws:s3:::", !Select [0, !Split ['/', !Ref TestPhotoImageBucketPath]]]]
                   - !Sub "arn:aws:s3:::${TestPhotoImageBucketPath}/*"
-        - PolicyName: GetTestImages
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:GetObject"
-                  - "s3:GetObjectVersion"
-                  - "s3:PutObject"
-                Resource:
-                  - !Sub "arn:aws:s3:::${TestPhotoImageBucketPath}/*"
-        # Used by SAM validate
-        - PolicyName: ListIamPolicies
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "iam:ListPolicies"
-                Resource:
-                  - "*"
-        - PolicyName: AssumeStagePipExecutionRoles
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Action:
-                  - sts:AssumeRole
-                Effect: Allow
-                Resource: "*"
-                Condition:
-                  StringEquals:
-                    aws:ResourceTag/Role: pipeline-execution-role
-        - PolicyName: KMS
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - kms:DescribeKey
-                  - kms:GenerateDataKey*
-                  - kms:Encrypt
-                  - kms:ReEncrypt*
-                  - kms:Decrypt
-                Resource: !Ref BuildPipelineArtifactsKmsKey
 
 
   CodeBuildProjectUnitTest:
