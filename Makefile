@@ -44,7 +44,7 @@ deploy-pipeline:
 		--template codepipeline.yaml \
 		--stack-name $(PIPELINE_STACKNAME) \
 		--parameter-overrides \
-			GitBranch=$(BRANCH) \
+			GitBranch=$(BRANCH)
 
 describe:
 	$(info Describing stack)

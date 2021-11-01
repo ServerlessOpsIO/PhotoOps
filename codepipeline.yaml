@@ -319,17 +319,17 @@ Resources:
                   - Name: !Sub "${AppName}-${GitBranch}-Dev-ChangeSet"
                 RoleArn: !Ref DevPipelineExecutionRole
 
-#              - Name: IntegrationTest
-#                ActionTypeId:
-#                  Category: Test
-#                  Owner: AWS
-#                  Provider: CodeBuild
-#                  Version: "1"
-#                Configuration:
-#                  ProjectName: !Ref CodeBuildProjectIntegrationTest
-#                InputArtifacts:
-#                  - Name: SourceCodeAsZip
-#                RunOrder: 3
+              - Name: IntegrationTest
+                ActionTypeId:
+                  Category: Test
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: "1"
+                Configuration:
+                  ProjectName: !Ref CodeBuildProjectIntegrationTest
+                InputArtifacts:
+                  - Name: SourceCodeAsZip
+                RunOrder: 3
           - !Ref AWS::NoValue
 
         - !If
@@ -403,7 +403,16 @@ Resources:
                 - codebuild.amazonaws.com
       ManagedPolicyArns:
         - !Ref CodeBuildServicePolicy
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaRole'    # Invoke Lambda functions
       Policies:
+        - PolicyName: SnsPublish
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sns:Publish"
+                Resource: "*"
         - PolicyName: TestImages
           PolicyDocument:
             Version: "2012-10-17"
@@ -464,6 +473,8 @@ Resources:
         EnvironmentVariables:
           - Name: TEST_PHOTO_IMAGE_BUCKET_PATH
             Value: !Ref TestPhotoImageBucketPath
+          - Name: STACK_NAME
+            Value: !Sub "${AppName}-${DevAppEnv}"
       ServiceRole: !GetAtt CodeBuildServiceRole.Arn
       Source:
         Type: CODEPIPELINE
