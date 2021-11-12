@@ -1,7 +1,4 @@
 '''Create JPEG image for cache'''
-import io
-import json
-import logging
 import os
 
 from dataclasses import asdict, dataclass
@@ -13,18 +10,16 @@ import boto3
 import imageio
 import rawpy
 
+from aws_lambda_powertools.logging import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from mypy_boto3_s3 import S3Client
 from mypy_boto3_s3.type_defs import PutObjectOutputTypeDef
 from mypy_boto3_sts import STSClient
 
-
 from common.models import JpegData, JpegDataItem, PutDdbItemAction
 from common.util.dataclasses import lambda_dataclass_response
 
-log_level = os.environ.get('LOG_LEVEL', 'INFO')
-logging.root.setLevel(logging.getLevelName(log_level))
-_logger = logging.getLogger(__name__)
+LOGGER = Logger(utc=True)
 
 S3_CLIENT: S3Client = boto3.client("s3")
 S3_EXPIRATION_DELTA_DAYS = 15
@@ -135,10 +130,11 @@ def _create_jpeg(s3_bucket: str, s3_object_key: str) -> JpegData:
     return jpeg_data
 
 
+@LOGGER.inject_lambda_context
 @lambda_dataclass_response
 def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
     '''Function entry'''
-    _logger.debug('Event: {}'.format(json.dumps(event)))
+    LOGGER.info('Event', extra={"message_object": event})
 
     pk = event.get('pk', '')
     sk = 'jpeg#v0'
@@ -155,7 +151,7 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
             }
         }
     )
-    _logger.debug('Response: {}'.format(json.dumps(asdict(response))))
+    LOGGER.info('Response', extra={"message_object": response})
 
     return response
 

@@ -1,21 +1,15 @@
 '''Return normalized location EXIF data'''
 
-import json
-import logging
-import os
-
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, cast
 
+from aws_lambda_powertools.logging import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
+
 from common.models import ExifDataItem, Ifd, LocationExifData, LocationExifDataItem, PutDdbItemAction
 from common.util.dataclasses import lambda_dataclass_response
 
-
-# FIXME: Replace with powertools logger
-log_level = os.environ.get('LOG_LEVEL', 'INFO')
-logging.root.setLevel(logging.getLevelName(log_level))
-_logger = logging.getLogger(__name__)
+LOGGER = Logger(utc=True)
 
 
 @dataclass
@@ -44,10 +38,11 @@ def _get_exif_location_data(exif_data: ExifDataItem) -> LocationExifData:
     return LocationExifData(**location_data)
 
 
+@LOGGER.inject_lambda_context
 @lambda_dataclass_response
 def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
     '''Function entry'''
-    _logger.debug('Event: {}'.format(json.dumps(event)))
+    LOGGER.info('Event', extra={"message_object": event})
 
     pk = event.get('pk')
     sk = 'location#v0'
@@ -63,6 +58,6 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
 
     response = Response(**{'Item': location_data_item})
 
-    _logger.debug('Response: {}'.format(json.dumps(asdict(response))))
+    LOGGER.info('Response', extra={"message_object": response})
 
     return response

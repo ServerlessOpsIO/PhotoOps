@@ -1,12 +1,10 @@
 '''Ingest S3 event and publish event data.'''
 
 import json
-import logging
-import os
 
 from typing import Any, Dict
 
-from aws_lambda_powertools import Logger
+from aws_lambda_powertools.logging import Logger
 from aws_lambda_powertools.utilities.data_classes import SNSEvent, S3Event
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
