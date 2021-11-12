@@ -12,10 +12,11 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 
 LOGGER = Logger(utc=True)
 
-@LOGGER.inject_lambda_context(log_event=True)
+@LOGGER.inject_lambda_context
 def handler(event: Dict[str, Any], context: LambdaContext) -> dict:
     '''Function entry'''
 
+    LOGGER.info('Event', extra={"message_object": event})
     sns_event = SNSEvent(event)
     sns_message_str = json.loads(sns_event.sns_message)
     s3_event = S3Event(sns_message_str)
