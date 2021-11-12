@@ -16,6 +16,7 @@ import boto3
 import exifread
 import filetype
 
+from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.data_classes import S3Event
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ParamValidationError
@@ -25,10 +26,7 @@ from mypy_boto3_sts import STSClient
 from common.models import ExifDataItem, FileData, PutDdbItemAction, make_exif_data_dataclass
 from common.util.dataclasses import lambda_dataclass_response
 
-# FIXME: Replace with powertools logger
-log_level = os.environ.get('LOG_LEVEL', 'INFO')
-logging.root.setLevel(logging.getLevelName(log_level))
-_logger = logging.getLogger(__name__)
+LOGGER = Logger(utc=True)
 
 CROSS_ACCOUNT_IAM_ROLE_ARN = os.environ.get('CROSS_ACCOUNT_IAM_ROLE_ARN')
 
@@ -115,11 +113,10 @@ def _get_exif_data(s3_bucket: str, s3_object: str, object_size: int) -> Tuple[An
 
     return exif_data, file_data
 
+@LOGGER.inject_lambda_context
 @lambda_dataclass_response
 def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
     '''Function entry'''
-    _logger.debug('Event: {}'.format(json.dumps(event)))
-
     s3_event = S3Event(event)
 
     s3_bucket = s3_event.bucket_name
@@ -138,7 +135,5 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
         }
     )
     response = Response(**{'Item': exif_data_item})
-
-    _logger.debug('EXIF: {}'.format(json.dumps(asdict(response))))
 
     return response
