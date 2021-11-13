@@ -27,13 +27,13 @@ Description: >
 
 
 Parameters:
-  AppName:
+  ServiceName:
     Type: String
     Default: "PhotoOps"
-  DevAppEnv:
+  DevServiceEnv:
     Type: String
     Default: "prime"
-  ProdAppEnv:
+  ProdServiceEnv:
     Type: String
     Default: "prime"
   FullRepositoryId:
@@ -217,7 +217,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${GitBranch}"
+                        InputString: !Sub "${ServiceName}-${GitBranch}"
                         Match: '[/_]'
                         Replace: '-'
                   ChangeSetName:
@@ -225,7 +225,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                        InputString: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                         Match: '[/_]'
                         Replace: '-'
                   TemplatePath: 'BuildArtifactAsZip::packaged.yaml'
@@ -257,7 +257,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${GitBranch}"
+                        InputString: !Sub "${ServiceName}-${GitBranch}"
                         Match: '[/_]'
                         Replace: '-'
                   ChangeSetName:
@@ -265,7 +265,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                        InputString: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                         Match: '[/_]'
                         Replace: '-'
                 OutputArtifacts:
@@ -274,7 +274,7 @@ Resources:
                         Name: String
                         Parameters:
                           Operation: Regex
-                          InputString: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                          InputString: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                           Match: '[/_]'
                           Replace: '-'
                 RoleArn: !Ref DevPipelineExecutionRole
@@ -297,7 +297,7 @@ Resources:
                         },
                         {
                           "name": "STACK_NAME",
-                          "value": "${AppName}-${GitBranchCleaned}"
+                          "value": "${ServiceName}-${GitBranchCleaned}"
                         }
                       ]
                     - GitBranchCleaned:
@@ -326,10 +326,10 @@ Resources:
                 Configuration:
                   ActionMode: CHANGE_SET_REPLACE
                   RoleArn: !Ref DevCloudFormationExecutionRole
-                  StackName: !Sub "${AppName}-${DevAppEnv}"
-                  ChangeSetName: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                  StackName: !Sub "${ServiceName}-${DevServiceEnv}"
+                  ChangeSetName: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                   TemplatePath: 'BuildArtifactAsZip::packaged.yaml'
-                  ParameterOverrides: !Sub '{ "ServiceEnv": "${DevAppEnv}" }'
+                  ParameterOverrides: !Sub '{ "ServiceEnv": "${DevServiceEnv}" }'
                   Capabilities: CAPABILITY_NAMED_IAM
                 InputArtifacts:
                   - Name: BuildArtifactAsZip
@@ -345,10 +345,10 @@ Resources:
                 Configuration:
                   ActionMode: CHANGE_SET_EXECUTE
                   RoleArn: !Ref DevCloudFormationExecutionRole
-                  StackName: !Sub "${AppName}-${DevAppEnv}"
-                  ChangeSetName: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                  StackName: !Sub "${ServiceName}-${DevServiceEnv}"
+                  ChangeSetName: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                 OutputArtifacts:
-                  - Name: !Sub "${AppName}-${GitBranch}-Dev-ChangeSet"
+                  - Name: !Sub "${ServiceName}-${GitBranch}-Dev-ChangeSet"
                 RoleArn: !Ref DevPipelineExecutionRole
 
               - Name: IntegrationTest
@@ -367,7 +367,7 @@ Resources:
                       },
                       {
                         "name": "STACK_NAME",
-                        "value": "${AppName}-${DevAppEnv}"
+                        "value": "${ServiceName}-${DevServiceEnv}"
                       }
                     ]
                 InputArtifacts:
@@ -397,10 +397,10 @@ Resources:
                 Configuration:
                   ActionMode: CHANGE_SET_REPLACE
                   RoleArn: !Ref ProdCloudFormationExecutionRole
-                  StackName: !Sub "${AppName}-${ProdAppEnv}"
-                  ChangeSetName: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                  StackName: !Sub "${ServiceName}-${ProdServiceEnv}"
+                  ChangeSetName: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                   TemplatePath: 'BuildArtifactAsZip::packaged.yaml'
-                  ParameterOverrides: !Sub '{ "ServiceEnv": "${ProdAppEnv}" }'
+                  ParameterOverrides: !Sub '{ "ServiceEnv": "${ProdServiceEnv}" }'
                   Capabilities: CAPABILITY_NAMED_IAM
                 InputArtifacts:
                   - Name: BuildArtifactAsZip
@@ -416,10 +416,10 @@ Resources:
                 Configuration:
                   ActionMode: CHANGE_SET_EXECUTE
                   RoleArn: !Ref ProdCloudFormationExecutionRole
-                  StackName: !Sub "${AppName}-${ProdAppEnv}"
-                  ChangeSetName: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                  StackName: !Sub "${ServiceName}-${ProdServiceEnv}"
+                  ChangeSetName: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                 OutputArtifacts:
-                  - Name: !Sub "${AppName}-${GitBranch}-Prod-ChangeSet"
+                  - Name: !Sub "${ServiceName}-${GitBranch}-Prod-ChangeSet"
                 RoleArn: !Ref ProdPipelineExecutionRole
           - !Ref AWS::NoValue
 
