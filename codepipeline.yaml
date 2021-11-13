@@ -278,6 +278,38 @@ Resources:
                           Match: '[/_]'
                           Replace: '-'
                 RoleArn: !Ref DevPipelineExecutionRole
+
+              - Name: IntegrationTest
+                RunOrder: 3
+                ActionTypeId:
+                  Category: Test
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: "1"
+                Configuration:
+                  ProjectName: !Ref CodeBuildProjectIntegrationTest
+                  EnvironmentVariables: !Sub
+                    - |
+                      [
+                        {
+                          "name": "TEST_PHOTO_IMAGE_BUCKET_PATH",
+                          "value": "${TestPhotoImageBucketPath}"
+                        },
+                        {
+                          "name": "STACK_NAME",
+                          "value": "${AppName}-${GitBranchCleaned}"
+                        }
+                      ]
+                    - GitBranchCleaned:
+                        'Fn::Transform':
+                          Name: String
+                          Parameters:
+                            Operation: Regex
+                            InputString: !Ref GitBranch
+                            Match: '[/_]'
+                            Replace: '-'
+                InputArtifacts:
+                  - Name: SourceCodeAsZip
           - !Ref AWS::NoValue
 
         - !If
@@ -327,6 +359,17 @@ Resources:
                   Version: "1"
                 Configuration:
                   ProjectName: !Ref CodeBuildProjectIntegrationTest
+                  EnvironmentVariables: !Sub |
+                    [
+                      {
+                        "name": "TEST_PHOTO_IMAGE_BUCKET_PATH",
+                        "value": "${TestPhotoImageBucketPath}"
+                      },
+                      {
+                        "name": "STACK_NAME",
+                        "value": "${AppName}-${DevAppEnv}"
+                      }
+                    ]
                 InputArtifacts:
                   - Name: SourceCodeAsZip
                 RunOrder: 3
@@ -461,7 +504,6 @@ Resources:
         BuildSpec: pipeline/buildspec_build_package.yml
 
   CodeBuildProjectIntegrationTest:
-    Condition: IsMainBranchPipeline
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
@@ -470,11 +512,6 @@ Resources:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_MEDIUM
         Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
-        EnvironmentVariables:
-          - Name: TEST_PHOTO_IMAGE_BUCKET_PATH
-            Value: !Ref TestPhotoImageBucketPath
-          - Name: STACK_NAME
-            Value: !Sub "${AppName}-${DevAppEnv}"
       ServiceRole: !GetAtt CodeBuildServiceRole.Arn
       Source:
         Type: CODEPIPELINE
