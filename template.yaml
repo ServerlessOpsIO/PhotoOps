@@ -6,7 +6,6 @@ Parameters:
   ServiceName:
     Type: String
     Description: "Name of service"
-    Default: "PhotoOps"
 
   ServiceEnv:
     Type: String
@@ -60,9 +59,6 @@ Globals:
             - Ref: XRaySDKEnabled
             - Enabled
         POWERTOOLS_SERVICE_NAME: !Ref AWS::StackName
-    Tags:
-      ServiceName: !Ref ServiceName
-      ServiceEnv: !Ref ServiceEnv
     Tracing: !Ref XRayTracingMode
 
 

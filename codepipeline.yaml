@@ -29,16 +29,14 @@ Description: >
 Parameters:
   ServiceName:
     Type: String
-    Default: "PhotoOps"
+  FullRepositoryId:
+    Type: String
   DevServiceEnv:
     Type: String
     Default: "prime"
   ProdServiceEnv:
     Type: String
     Default: "prime"
-  FullRepositoryId:
-    Type: String
-    Default: "ServerlessOpsIO/PhotoOps"
   GitBranch:
     Type: String
     Default: "master"
@@ -142,6 +140,8 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 ParameterOverrides: !Sub |
                   {
+                    "ServiceName": "${ServiceName}",
+                    "FullRepositoryId": "${FullRepositoryId}",
                     "GitBranch": "${GitBranch}"
                   }
               InputArtifacts:
@@ -186,13 +186,26 @@ Resources:
                 Version: "1"
               Configuration:
                 ProjectName: !Ref CodeBuildProjectBuildAndPackage
-                EnvironmentVariables: !Sub |
-                  [
-                    {"name": "REGION", "value": "${Region}"},
-                    {"name": "BUILD_ARTIFACT_BUCKET", "value": "${BuildPipelineArtifactsBucket}"},
-                    {"name": "BUILD_ARTIFACT_PREFIX_PATH", "value": "package/${AWS::StackName}"},
-                    {"name": "BUILD_ARTIFACT_KMS_KEY", "value": "${BuildPipelineArtifactsKmsKey}"}
-                  ]
+                EnvironmentVariables: !Sub
+                  - |
+                    [
+                      {"name": "REGION", "value": "${Region}"},
+                      {"name": "BUILD_ARTIFACT_BUCKET", "value": "${BuildPipelineArtifactsBucket}"},
+                      {"name": "BUILD_ARTIFACT_PREFIX_PATH", "value": "package/${AWS::StackName}"},
+                      {"name": "BUILD_ARTIFACT_KMS_KEY", "value": "${BuildPipelineArtifactsKmsKey}"},
+                      {"name": "APPNAME", "value": "${ServiceName}"},
+                      {"name": "GIT_BRANCH", "value": "${GitBranchCleaned}"},
+                      {"name": "DEV_ENV", "value": "${DevServiceEnv}"},
+                      {"name": "PROD_ENV", "value": "${ProdServiceEnv}"}
+                    ]
+                  - GitBranchCleaned:
+                      'Fn::Transform':
+                        Name: String
+                        Parameters:
+                          Operation: Regex
+                          InputString: !Ref GitBranch
+                          Match: '[/_]'
+                          Replace: '-'
               InputArtifacts:
                 - Name: SourceCodeAsZip
               OutputArtifacts:
@@ -229,14 +242,17 @@ Resources:
                         Match: '[/_]'
                         Replace: '-'
                   TemplatePath: 'BuildArtifactAsZip::packaged.yaml'
-                  ParameterOverrides:
-                    'Fn::Transform':
-                      Name: String
-                      Parameters:
-                        Operation: Regex
-                        InputString: !Sub '{ "ServiceEnv": "${GitBranch}" }'
-                        Match: '[/_]'
-                        Replace: '-'
+                  TemplateConfiguration: 'BuildArtifactAsZip::codepipeline-config-feature.yaml'
+                  ParameterOverrides: !Sub
+                    - '{ "ServiceName": "${ServiceName}", "ServiceEnv": "${GitBranchCleaned}" }'
+                    - GitBranchCleaned:
+                        'Fn::Transform':
+                          Name: String
+                          Parameters:
+                            Operation: Regex
+                            InputString: !Ref GitBranch
+                            Match: '[/_]'
+                            Replace: '-'
                   Capabilities: CAPABILITY_NAMED_IAM
                 InputArtifacts:
                   - Name: BuildArtifactAsZip
@@ -329,7 +345,8 @@ Resources:
                   StackName: !Sub "${ServiceName}-${DevServiceEnv}"
                   ChangeSetName: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                   TemplatePath: 'BuildArtifactAsZip::packaged.yaml'
-                  ParameterOverrides: !Sub '{ "ServiceEnv": "${DevServiceEnv}" }'
+                  TemplateConfiguration: 'BuildArtifactAsZip::codepipeline-config-dev.yaml'
+                  ParameterOverrides: !Sub '{ "ServiceName": "${ServiceName}", "ServiceEnv": "${DevServiceEnv}" }'
                   Capabilities: CAPABILITY_NAMED_IAM
                 InputArtifacts:
                   - Name: BuildArtifactAsZip
@@ -400,7 +417,8 @@ Resources:
                   StackName: !Sub "${ServiceName}-${ProdServiceEnv}"
                   ChangeSetName: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                   TemplatePath: 'BuildArtifactAsZip::packaged.yaml'
-                  ParameterOverrides: !Sub '{ "ServiceEnv": "${ProdServiceEnv}" }'
+                  TemplateConfiguration: 'BuildArtifactAsZip::codepipeline-config-prod.yaml'
+                  ParameterOverrides: !Sub '{ "ServiceName": "${ServiceName}", "ServiceEnv": "${ProdServiceEnv}" }'
                   Capabilities: CAPABILITY_NAMED_IAM
                 InputArtifacts:
                   - Name: BuildArtifactAsZip
@@ -429,6 +447,10 @@ Resources:
   # | |   / _ \ / _` |/ _ |  _ \| | | | | |/ _` |
   # | |__| (_) | (_| |  __| |_) | |_| | | | (_| |
   #  \____\___/ \__,_|\___|____/ \__,_|_|_|\__,_|
+
+  # This role lets us perform codeBuild actions within the CI/CD account.
+  # CodeBuild actions to be performed in other accounts requires the ARN
+  # of a role to assume in that account.
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -448,14 +470,6 @@ Resources:
         - !Ref CodeBuildServicePolicy
         - 'arn:aws:iam::aws:policy/service-role/AWSLambdaRole'    # Invoke Lambda functions
       Policies:
-        - PolicyName: SnsPublish
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "sns:Publish"
-                Resource: "*"
         - PolicyName: TestImages
           PolicyDocument:
             Version: "2012-10-17"
