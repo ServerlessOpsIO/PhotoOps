@@ -13,6 +13,8 @@ import pytest
 
 from dataclasses import asdict
 
+from common.test.aws import create_lambda_function_context
+
 os.environ['CROSS_ACCOUNT_IAM_ROLE_ARN'] = 'arn:aws:iam::123456789012:role/PhotoOpsAI/CrossAccountAccess'
 import src.handlers.GetExifData.function as func
 
@@ -24,6 +26,11 @@ IMAGE_DIR = os.path.join(DATA_DIR, 'images')
 MODEL_DIR = os.path.join(DATA_DIR, 'models')
 
 ### Events
+@pytest.fixture()
+def context():
+    '''context object'''
+    return create_lambda_function_context('GetExifData')
+
 @pytest.fixture(params=[
     'test_image_nikon.NEF',
     'test_image_lightroom_nikon.jpg',
@@ -146,7 +153,7 @@ def test_validate_expected_data(expected_response, data_schema):
 
 ### Tests
 @moto.mock_s3
-def test_handler(event, image, expected_response, s3_client, s3_bucket_name, s3_object_key, mocker):
+def test_handler(event, image, expected_response, s3_client, s3_bucket_name, s3_object_key, context, mocker):
     '''Call handler'''
     mocker.patch(
         'src.handlers.GetExifData.function._get_cross_account_s3_client',
@@ -160,5 +167,5 @@ def test_handler(event, image, expected_response, s3_client, s3_bucket_name, s3_
     # FIXME: Looks like exifread closes JPGs biut not others. Should figure that out.
     #image.seek(0)
 
-    resp = func.handler(event, {})
+    resp = func.handler(event, context)
     assert resp == expected_response

@@ -13,6 +13,8 @@ import pytest
 from datetime import datetime, timedelta
 from typing import cast
 
+from common.test.aws import create_lambda_function_context
+
 CACHE_BUCKET_NAME = 'cache_bucket'
 os.environ['PHOTOOPS_S3_BUCKET'] = CACHE_BUCKET_NAME
 os.environ['CROSS_ACCOUNT_IAM_ROLE_ARN'] = 'arn:aws:iam::123456789012:role/PhotoOpsAI/CrossAccountAccess'
@@ -31,6 +33,11 @@ DATA_SCHEMA = os.path.join(SCHEMA_DIR, 'JpegData.schema.json')
 RESPONSE_SCHEMA = os.path.join(SCHEMA_DIR, 'CreateJpegFromRaw.schema.json')
 
 ### AWS clients
+@pytest.fixture()
+def context():
+    '''context object'''
+    return create_lambda_function_context('CreateJpegFromRaw')
+
 @pytest.fixture()
 def aws_credentials() -> None:
     '''Mock credentials to prevent accidentally escaping our mock'''
@@ -134,7 +141,7 @@ def test_validate_expected_response(expected_response: dict, response_schema: di
 
 
 ### Tests
-def test_handler(event: dict, expected_response: dict, image, S3_CLIENT, mocker):
+def test_handler(event: dict, expected_response: dict, image, S3_CLIENT, context, mocker):
     '''Call handler'''
     mocker.patch(
         'src.handlers.CreateJpegFromRaw.function._get_cross_account_s3_client',
@@ -160,7 +167,7 @@ def test_handler(event: dict, expected_response: dict, image, S3_CLIENT, mocker)
         Bucket=CACHE_BUCKET_NAME
     )
 
-    resp = func.handler(event, {})
+    resp = func.handler(event, context)
     # Remove expiration since it won't match
     expiration = resp['Item'].pop('expiration_date_time')
     expected_response['Item'].pop('expiration_date_time')

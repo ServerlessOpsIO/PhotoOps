@@ -9,6 +9,8 @@ import pytest
 
 from aws_lambda_powertools.utilities.data_classes import S3Event
 
+from common.test.aws import create_lambda_function_context
+
 import src.handlers.IngestS3Event.function as func
 
 DATA_DIR = './data'
@@ -17,6 +19,11 @@ IMAGE_DIR = os.path.join(DATA_DIR, 'images')
 MODEL_DIR = os.path.join(DATA_DIR, 'models')
 
 ### Events
+@pytest.fixture()
+def context():
+    '''context object'''
+    return create_lambda_function_context('IngestS3Event')
+
 @pytest.fixture()
 def event():
     '''Return a test event'''
@@ -46,13 +53,13 @@ def s3_notification_schema():
 
 
 ### Tests
-def test_handler(event, s3_notification, mocker):
+def test_handler(event, s3_notification, context, mocker):
     '''Call handler'''
 
     s3_notification_event = S3Event(s3_notification)
     event['Records'][0]['Sns']['Message'] = json.dumps(s3_notification_event._data)
 
-    resp = func.handler(event, {})
+    resp = func.handler(event, context)
 
     assert resp == s3_notification
 

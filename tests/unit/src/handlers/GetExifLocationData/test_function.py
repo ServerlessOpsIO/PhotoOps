@@ -11,6 +11,8 @@ import src.handlers.GetExifLocationData.function as func
 
 from dataclasses import asdict
 
+from common.test.aws import create_lambda_function_context
+
 DATA_DIR = './data'
 EVENT_DIR = os.path.join(DATA_DIR, 'events')
 SCHEMA_DIR = os.path.join(DATA_DIR, 'schemas')
@@ -24,6 +26,11 @@ DATA_SCHEMA = os.path.join(SCHEMA_DIR, 'LocationExifData.schema.json')
 RESPONSE_SCHEMA = os.path.join(SCHEMA_DIR, 'GetExifLocationDataResponse.schema.json')
 
 ### Events
+@pytest.fixture()
+def context():
+    '''context object'''
+    return create_lambda_function_context('GetExifLocationData')
+
 @pytest.fixture()
 def event(request):
     '''Return a test event'''
@@ -85,7 +92,7 @@ def test_validate_expected_response(expected_response, response_schema):
 
 
 ### Tests
-def test_handler(event, expected_response, mocker):
+def test_handler(event, expected_response, context, mocker):
     '''Call handler'''
-    resp = func.handler(event, {})
+    resp = func.handler(event, context)
     assert resp == expected_response

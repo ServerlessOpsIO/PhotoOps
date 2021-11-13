@@ -1,14 +1,15 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=protected-access
-'''Test IngestPhoto'''
+'''Test PutDdbItem'''
 
 import json
 import os
 
 import boto3
-import exifread
 import moto
 import pytest
+
+from common.test.aws import create_lambda_function_context
 
 import src.handlers.PutDdbItem.function as func
 
@@ -17,6 +18,11 @@ EVENT_DIR = os.path.join(DATA_DIR, 'events')
 IMAGE_DIR = os.path.join(DATA_DIR, 'images')
 MODEL_DIR = os.path.join(DATA_DIR, 'models')
 
+
+@pytest.fixture()
+def context():
+    '''context object'''
+    return create_lambda_function_context('PutDdbItem')
 
 @pytest.fixture(params=['PutDdbItem-event-eb.json'])
 def event(request):
@@ -71,7 +77,7 @@ def DDB_TABLE(session):
 
 
 ### Tests
-def test_handler(event, DDB_TABLE, mocker):
+def test_handler(event, DDB_TABLE, context, mocker):
     '''Call handler'''
 
     mocker.patch.object(
@@ -80,7 +86,7 @@ def test_handler(event, DDB_TABLE, mocker):
         DDB_TABLE
     )
 
-    resp = func.handler(event, {})
+    resp = func.handler(event, context)
     assert resp['ResponseMetadata']['HTTPStatusCode'] == 200
 
 
