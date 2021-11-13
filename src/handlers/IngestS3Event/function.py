@@ -21,5 +21,4 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> dict:
     s3_event_data = s3_event._data
 
     LOGGER.info('Response', extra={"message_object": s3_event_data})
-    resp = s3_event_data
-    return resp
+    return s3_event_data
