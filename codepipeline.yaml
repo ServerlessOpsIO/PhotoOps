@@ -67,12 +67,18 @@ Parameters:
   DevPipelineExecutionRole:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/codepipeline-build-prime/DevPipelineExecutionRoleArn"
+  DevCodeBuildServiceRole:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/codepipeline-build-prime/DevCodeBuildServiceRoleArn"
   DevCloudFormationExecutionRole:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/codepipeline-build-prime/DevCfnExecutionRoleArn"
   ProdPipelineExecutionRole:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/codepipeline-build-prime/ProdPipelineExecutionRoleArn"
+  ProdCodeBuildServiceRole:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/codepipeline-build-prime/ProdCodeBuildServiceRoleArn"
   ProdCloudFormationExecutionRole:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/codepipeline-build-prime/ProdCfnExecutionRoleArn"
@@ -324,6 +330,7 @@ Resources:
                             InputString: !Ref GitBranch
                             Match: '[/_]'
                             Replace: '-'
+                RoleArn: !Ref DevCodeBuildServiceRole
                 InputArtifacts:
                   - Name: SourceCodeAsZip
           - !Ref AWS::NoValue
@@ -387,6 +394,7 @@ Resources:
                         "value": "${ServiceName}-${DevServiceEnv}"
                       }
                     ]
+                RoleArn: !Ref DevCodeBuildServiceRole
                 InputArtifacts:
                   - Name: SourceCodeAsZip
                 RunOrder: 3
