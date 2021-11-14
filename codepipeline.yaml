@@ -314,6 +314,10 @@ Resources:
                     - |
                       [
                         {
+                          "name": "CROSS_ACCOUNT_ROLE",
+                          "value": "${DevCodeBuildServiceRole}"
+                        },
+                        {
                           "name": "TEST_PHOTO_IMAGE_BUCKET_PATH",
                           "value": "${TestPhotoImageBucketPath}"
                         },
@@ -330,7 +334,6 @@ Resources:
                             InputString: !Ref GitBranch
                             Match: '[/_]'
                             Replace: '-'
-                RoleArn: !Ref DevCodeBuildServiceRole
                 InputArtifacts:
                   - Name: SourceCodeAsZip
           - !Ref AWS::NoValue
@@ -386,6 +389,10 @@ Resources:
                   EnvironmentVariables: !Sub |
                     [
                       {
+                        "name": "CROSS_ACCOUNT_ROLE",
+                        "value": "${DevCodeBuildServiceRole}"
+                      },
+                      {
                         "name": "TEST_PHOTO_IMAGE_BUCKET_PATH",
                         "value": "${TestPhotoImageBucketPath}"
                       },
@@ -394,7 +401,6 @@ Resources:
                         "value": "${ServiceName}-${DevServiceEnv}"
                       }
                     ]
-                RoleArn: !Ref DevCodeBuildServiceRole
                 InputArtifacts:
                   - Name: SourceCodeAsZip
                 RunOrder: 3
