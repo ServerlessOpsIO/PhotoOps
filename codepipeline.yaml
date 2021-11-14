@@ -27,18 +27,16 @@ Description: >
 
 
 Parameters:
-  AppName:
+  ServiceName:
     Type: String
-    Default: "PhotoOps"
-  DevAppEnv:
-    Type: String
-    Default: "prime"
-  ProdAppEnv:
-    Type: String
-    Default: "prime"
   FullRepositoryId:
     Type: String
-    Default: "ServerlessOpsIO/PhotoOps"
+  DevServiceEnv:
+    Type: String
+    Default: "prime"
+  ProdServiceEnv:
+    Type: String
+    Default: "prime"
   GitBranch:
     Type: String
     Default: "master"
@@ -69,12 +67,18 @@ Parameters:
   DevPipelineExecutionRole:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/codepipeline-build-prime/DevPipelineExecutionRoleArn"
+  DevCodeBuildServiceRole:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/codepipeline-build-prime/DevCodeBuildServiceRoleArn"
   DevCloudFormationExecutionRole:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/codepipeline-build-prime/DevCfnExecutionRoleArn"
   ProdPipelineExecutionRole:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/codepipeline-build-prime/ProdPipelineExecutionRoleArn"
+  ProdCodeBuildServiceRole:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/codepipeline-build-prime/ProdCodeBuildServiceRoleArn"
   ProdCloudFormationExecutionRole:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/codepipeline-build-prime/ProdCfnExecutionRoleArn"
@@ -142,6 +146,8 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 ParameterOverrides: !Sub |
                   {
+                    "ServiceName": "${ServiceName}",
+                    "FullRepositoryId": "${FullRepositoryId}",
                     "GitBranch": "${GitBranch}"
                   }
               InputArtifacts:
@@ -186,13 +192,26 @@ Resources:
                 Version: "1"
               Configuration:
                 ProjectName: !Ref CodeBuildProjectBuildAndPackage
-                EnvironmentVariables: !Sub |
-                  [
-                    {"name": "REGION", "value": "${Region}"},
-                    {"name": "BUILD_ARTIFACT_BUCKET", "value": "${BuildPipelineArtifactsBucket}"},
-                    {"name": "BUILD_ARTIFACT_PREFIX_PATH", "value": "package/${AWS::StackName}"},
-                    {"name": "BUILD_ARTIFACT_KMS_KEY", "value": "${BuildPipelineArtifactsKmsKey}"}
-                  ]
+                EnvironmentVariables: !Sub
+                  - |
+                    [
+                      {"name": "REGION", "value": "${Region}"},
+                      {"name": "BUILD_ARTIFACT_BUCKET", "value": "${BuildPipelineArtifactsBucket}"},
+                      {"name": "BUILD_ARTIFACT_PREFIX_PATH", "value": "package/${AWS::StackName}"},
+                      {"name": "BUILD_ARTIFACT_KMS_KEY", "value": "${BuildPipelineArtifactsKmsKey}"},
+                      {"name": "APPNAME", "value": "${ServiceName}"},
+                      {"name": "GIT_BRANCH", "value": "${GitBranchCleaned}"},
+                      {"name": "DEV_ENV", "value": "${DevServiceEnv}"},
+                      {"name": "PROD_ENV", "value": "${ProdServiceEnv}"}
+                    ]
+                  - GitBranchCleaned:
+                      'Fn::Transform':
+                        Name: String
+                        Parameters:
+                          Operation: Regex
+                          InputString: !Ref GitBranch
+                          Match: '[/_]'
+                          Replace: '-'
               InputArtifacts:
                 - Name: SourceCodeAsZip
               OutputArtifacts:
@@ -217,7 +236,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${GitBranch}"
+                        InputString: !Sub "${ServiceName}-${GitBranch}"
                         Match: '[/_]'
                         Replace: '-'
                   ChangeSetName:
@@ -225,18 +244,21 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                        InputString: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                         Match: '[/_]'
                         Replace: '-'
                   TemplatePath: 'BuildArtifactAsZip::packaged.yaml'
-                  ParameterOverrides:
-                    'Fn::Transform':
-                      Name: String
-                      Parameters:
-                        Operation: Regex
-                        InputString: !Sub '{ "ServiceEnv": "${GitBranch}" }'
-                        Match: '[/_]'
-                        Replace: '-'
+                  TemplateConfiguration: 'BuildArtifactAsZip::codepipeline-config-feature.yaml'
+                  ParameterOverrides: !Sub
+                    - '{ "ServiceName": "${ServiceName}", "ServiceEnv": "${GitBranchCleaned}" }'
+                    - GitBranchCleaned:
+                        'Fn::Transform':
+                          Name: String
+                          Parameters:
+                            Operation: Regex
+                            InputString: !Ref GitBranch
+                            Match: '[/_]'
+                            Replace: '-'
                   Capabilities: CAPABILITY_NAMED_IAM
                 InputArtifacts:
                   - Name: BuildArtifactAsZip
@@ -257,7 +279,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${GitBranch}"
+                        InputString: !Sub "${ServiceName}-${GitBranch}"
                         Match: '[/_]'
                         Replace: '-'
                   ChangeSetName:
@@ -265,7 +287,7 @@ Resources:
                       Name: String
                       Parameters:
                         Operation: Regex
-                        InputString: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                        InputString: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                         Match: '[/_]'
                         Replace: '-'
                 OutputArtifacts:
@@ -274,10 +296,46 @@ Resources:
                         Name: String
                         Parameters:
                           Operation: Regex
-                          InputString: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                          InputString: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                           Match: '[/_]'
                           Replace: '-'
                 RoleArn: !Ref DevPipelineExecutionRole
+
+              - Name: IntegrationTest
+                RunOrder: 3
+                ActionTypeId:
+                  Category: Test
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: "1"
+                Configuration:
+                  ProjectName: !Ref CodeBuildProjectIntegrationTest
+                  EnvironmentVariables: !Sub
+                    - |
+                      [
+                        {
+                          "name": "CROSS_ACCOUNT_ROLE",
+                          "value": "${DevCodeBuildServiceRole}"
+                        },
+                        {
+                          "name": "TEST_PHOTO_IMAGE_BUCKET_PATH",
+                          "value": "${TestPhotoImageBucketPath}"
+                        },
+                        {
+                          "name": "STACK_NAME",
+                          "value": "${ServiceName}-${GitBranchCleaned}"
+                        }
+                      ]
+                    - GitBranchCleaned:
+                        'Fn::Transform':
+                          Name: String
+                          Parameters:
+                            Operation: Regex
+                            InputString: !Ref GitBranch
+                            Match: '[/_]'
+                            Replace: '-'
+                InputArtifacts:
+                  - Name: SourceCodeAsZip
           - !Ref AWS::NoValue
 
         - !If
@@ -294,10 +352,11 @@ Resources:
                 Configuration:
                   ActionMode: CHANGE_SET_REPLACE
                   RoleArn: !Ref DevCloudFormationExecutionRole
-                  StackName: !Sub "${AppName}-${DevAppEnv}"
-                  ChangeSetName: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                  StackName: !Sub "${ServiceName}-${DevServiceEnv}"
+                  ChangeSetName: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                   TemplatePath: 'BuildArtifactAsZip::packaged.yaml'
-                  ParameterOverrides: !Sub '{ "ServiceEnv": "${DevAppEnv}" }'
+                  TemplateConfiguration: 'BuildArtifactAsZip::codepipeline-config-dev.yaml'
+                  ParameterOverrides: !Sub '{ "ServiceName": "${ServiceName}", "ServiceEnv": "${DevServiceEnv}" }'
                   Capabilities: CAPABILITY_NAMED_IAM
                 InputArtifacts:
                   - Name: BuildArtifactAsZip
@@ -313,23 +372,38 @@ Resources:
                 Configuration:
                   ActionMode: CHANGE_SET_EXECUTE
                   RoleArn: !Ref DevCloudFormationExecutionRole
-                  StackName: !Sub "${AppName}-${DevAppEnv}"
-                  ChangeSetName: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                  StackName: !Sub "${ServiceName}-${DevServiceEnv}"
+                  ChangeSetName: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                 OutputArtifacts:
-                  - Name: !Sub "${AppName}-${GitBranch}-Dev-ChangeSet"
+                  - Name: !Sub "${ServiceName}-${GitBranch}-Dev-ChangeSet"
                 RoleArn: !Ref DevPipelineExecutionRole
 
-#              - Name: IntegrationTest
-#                ActionTypeId:
-#                  Category: Test
-#                  Owner: AWS
-#                  Provider: CodeBuild
-#                  Version: "1"
-#                Configuration:
-#                  ProjectName: !Ref CodeBuildProjectIntegrationTest
-#                InputArtifacts:
-#                  - Name: SourceCodeAsZip
-#                RunOrder: 3
+              - Name: IntegrationTest
+                ActionTypeId:
+                  Category: Test
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: "1"
+                Configuration:
+                  ProjectName: !Ref CodeBuildProjectIntegrationTest
+                  EnvironmentVariables: !Sub |
+                    [
+                      {
+                        "name": "CROSS_ACCOUNT_ROLE",
+                        "value": "${DevCodeBuildServiceRole}"
+                      },
+                      {
+                        "name": "TEST_PHOTO_IMAGE_BUCKET_PATH",
+                        "value": "${TestPhotoImageBucketPath}"
+                      },
+                      {
+                        "name": "STACK_NAME",
+                        "value": "${ServiceName}-${DevServiceEnv}"
+                      }
+                    ]
+                InputArtifacts:
+                  - Name: SourceCodeAsZip
+                RunOrder: 3
           - !Ref AWS::NoValue
 
         - !If
@@ -354,10 +428,11 @@ Resources:
                 Configuration:
                   ActionMode: CHANGE_SET_REPLACE
                   RoleArn: !Ref ProdCloudFormationExecutionRole
-                  StackName: !Sub "${AppName}-${ProdAppEnv}"
-                  ChangeSetName: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                  StackName: !Sub "${ServiceName}-${ProdServiceEnv}"
+                  ChangeSetName: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                   TemplatePath: 'BuildArtifactAsZip::packaged.yaml'
-                  ParameterOverrides: !Sub '{ "ServiceEnv": "${ProdAppEnv}" }'
+                  TemplateConfiguration: 'BuildArtifactAsZip::codepipeline-config-prod.yaml'
+                  ParameterOverrides: !Sub '{ "ServiceName": "${ServiceName}", "ServiceEnv": "${ProdServiceEnv}" }'
                   Capabilities: CAPABILITY_NAMED_IAM
                 InputArtifacts:
                   - Name: BuildArtifactAsZip
@@ -373,10 +448,10 @@ Resources:
                 Configuration:
                   ActionMode: CHANGE_SET_EXECUTE
                   RoleArn: !Ref ProdCloudFormationExecutionRole
-                  StackName: !Sub "${AppName}-${ProdAppEnv}"
-                  ChangeSetName: !Sub "${AppName}-${GitBranch}-ChangeSet"
+                  StackName: !Sub "${ServiceName}-${ProdServiceEnv}"
+                  ChangeSetName: !Sub "${ServiceName}-${GitBranch}-ChangeSet"
                 OutputArtifacts:
-                  - Name: !Sub "${AppName}-${GitBranch}-Prod-ChangeSet"
+                  - Name: !Sub "${ServiceName}-${GitBranch}-Prod-ChangeSet"
                 RoleArn: !Ref ProdPipelineExecutionRole
           - !Ref AWS::NoValue
 
@@ -386,6 +461,10 @@ Resources:
   # | |   / _ \ / _` |/ _ |  _ \| | | | | |/ _` |
   # | |__| (_) | (_| |  __| |_) | |_| | | | (_| |
   #  \____\___/ \__,_|\___|____/ \__,_|_|_|\__,_|
+
+  # This role lets us perform codeBuild actions within the CI/CD account.
+  # CodeBuild actions to be performed in other accounts requires the ARN
+  # of a role to assume in that account.
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -403,6 +482,7 @@ Resources:
                 - codebuild.amazonaws.com
       ManagedPolicyArns:
         - !Ref CodeBuildServicePolicy
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaRole'    # Invoke Lambda functions
       Policies:
         - PolicyName: TestImages
           PolicyDocument:
@@ -452,7 +532,6 @@ Resources:
         BuildSpec: pipeline/buildspec_build_package.yml
 
   CodeBuildProjectIntegrationTest:
-    Condition: IsMainBranchPipeline
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
@@ -461,9 +540,6 @@ Resources:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_MEDIUM
         Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
-        EnvironmentVariables:
-          - Name: TEST_PHOTO_IMAGE_BUCKET_PATH
-            Value: !Ref TestPhotoImageBucketPath
       ServiceRole: !GetAtt CodeBuildServiceRole.Arn
       Source:
         Type: CODEPIPELINE

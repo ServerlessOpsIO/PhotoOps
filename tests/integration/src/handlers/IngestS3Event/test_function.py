@@ -8,8 +8,9 @@ import boto3
 import pytest
 from aws_lambda_powertools.utilities.data_classes import S3Event
 
-STACK_NAME = 'PhotoOps-tom'
-FUNCTION_NAME = os.path.abspath(__file__).split(os.path.sep)[-2]
+STACK_NAME = os.environ.get('STACK_NAME')
+FUNCTION_LOGICAL_ID = 'IngestS3Event'
+SNS_TOPIC_LOGICAL_ID = 'PhotoOpsIngestTopic'
 
 DATA_DIR = './data'
 EVENT_DIR = os.path.join(DATA_DIR, 'events')
@@ -47,14 +48,14 @@ def s3_notification(request):
         return json.load(f)
 
 
-def test_handler(event, s3_notification, cfn_client, lambda_client):
-    '''Test handler'''
+def test_invoke_handler(event, s3_notification, cfn_client, lambda_client):
+    '''Test invoking handler'''
     s3_notification_event = S3Event(s3_notification)
     event['Records'][0]['Sns']['Message'] = json.dumps(s3_notification_event._data)
 
     function_info = cfn_client.describe_stack_resource(
         StackName=STACK_NAME,
-        LogicalResourceId=FUNCTION_NAME
+        LogicalResourceId=FUNCTION_LOGICAL_ID
     )
     function_name = function_info['StackResourceDetail']['PhysicalResourceId']
 
