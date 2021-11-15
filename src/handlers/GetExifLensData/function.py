@@ -4,11 +4,13 @@ from dataclasses import asdict, dataclass
 from typing import Any, Dict, Union, cast
 
 from aws_lambda_powertools.logging import Logger
+from aws_lambda_powertools.tracing import Tracer
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from common.models import ExifDataItem, Ifd, LensExifData, LensExifDataItem, PutDdbItemAction
 from common.util.dataclasses import lambda_dataclass_response
 
+TRACER = Tracer()
 LOGGER = Logger(utc=True)
 
 
@@ -55,6 +57,7 @@ def _get_exif_lens_data(exif_data: ExifDataItem) -> LensExifData:
     return LensExifData(**lens_data)
 
 
+@TRACER.capture_lambda_handler
 @LOGGER.inject_lambda_context
 @lambda_dataclass_response
 def handler(event: Dict[str, Any], context: LambdaContext) -> Response:

@@ -11,6 +11,7 @@ import imageio
 import rawpy
 
 from aws_lambda_powertools.logging import Logger
+from aws_lambda_powertools.tracing import Tracer
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from mypy_boto3_s3 import S3Client
 from mypy_boto3_s3.type_defs import PutObjectOutputTypeDef
@@ -19,6 +20,7 @@ from mypy_boto3_sts import STSClient
 from common.models import JpegData, JpegDataItem, PutDdbItemAction
 from common.util.dataclasses import lambda_dataclass_response
 
+TRACER = Tracer()
 LOGGER = Logger(utc=True)
 
 S3_CLIENT: S3Client = boto3.client("s3")
@@ -130,6 +132,7 @@ def _create_jpeg(s3_bucket: str, s3_object_key: str) -> JpegData:
     return jpeg_data
 
 
+@TRACER.capture_lambda_handler
 @LOGGER.inject_lambda_context
 @lambda_dataclass_response
 def handler(event: Dict[str, Any], context: LambdaContext) -> Response:

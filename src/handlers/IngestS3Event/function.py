@@ -5,11 +5,14 @@ import json
 from typing import Any, Dict
 
 from aws_lambda_powertools.logging import Logger
+from aws_lambda_powertools.tracing import Tracer
 from aws_lambda_powertools.utilities.data_classes import SNSEvent, S3Event
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
+TRACER = Tracer()
 LOGGER = Logger(utc=True)
 
+@TRACER.capture_lambda_handler
 @LOGGER.inject_lambda_context
 def handler(event: Dict[str, Any], context: LambdaContext) -> dict:
     '''Function entry'''

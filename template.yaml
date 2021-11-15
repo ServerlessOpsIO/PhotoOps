@@ -26,7 +26,7 @@ Parameters:
   XRayTracingMode:
     Type: String
     Description: "AWS XRay tracing mode"
-    Default: PassThrough
+    Default: Active
     AllowedValues:
       - Active
       - PassThrough

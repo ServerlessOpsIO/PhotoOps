@@ -15,6 +15,7 @@ import exifread
 import filetype
 
 from aws_lambda_powertools.logging import Logger
+from aws_lambda_powertools.tracing import Tracer
 from aws_lambda_powertools.utilities.data_classes import S3Event
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ParamValidationError
@@ -24,6 +25,7 @@ from mypy_boto3_sts import STSClient
 from common.models import ExifDataItem, FileData, PutDdbItemAction, make_exif_data_dataclass
 from common.util.dataclasses import lambda_dataclass_response
 
+TRACER = Tracer()
 LOGGER = Logger(utc=True)
 
 CROSS_ACCOUNT_IAM_ROLE_ARN = os.environ.get('CROSS_ACCOUNT_IAM_ROLE_ARN')
@@ -111,6 +113,7 @@ def _get_exif_data(s3_bucket: str, s3_object: str, object_size: int) -> Tuple[An
 
     return exif_data, file_data
 
+@TRACER.capture_lambda_handler
 @LOGGER.inject_lambda_context
 @lambda_dataclass_response
 def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
