@@ -3,13 +3,14 @@ phases:
   install:
     runtime-versions:
       python: 3.8
+    commands:
+      - pip install --upgrade pip
+      - pip install pipenv
+      - pipenv install --dev
   build:
     commands:
       # trigger the unit tests here
       - echo 'Running unit tests'
-      - pip install --upgrade pip
-      - pip install pipenv
-      - pipenv install --dev
       - pipenv run make validate
       - aws s3 sync --no-progress s3://${TEST_PHOTO_IMAGE_BUCKET_PATH} data/images
       - pipenv run make unit-test
