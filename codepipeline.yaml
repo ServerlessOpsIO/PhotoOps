@@ -171,7 +171,6 @@ Resources:
         - Name: TestBuildPackage
           Actions:
             - Name: UnitTest
-              RunOrder: 1
               ActionTypeId:
                 Category: Test
                 Owner: AWS
@@ -182,8 +181,9 @@ Resources:
               InputArtifacts:
                 - Name: SourceCodeAsZip
 
+        - Name: BuildAndPackage
+          Actions:
             - Name: CodeBuild
-              RunOrder: 2
               ActionTypeId:
                 Category: Build
                 Owner: AWS
@@ -299,9 +299,13 @@ Resources:
                           Match: '[/_]'
                           Replace: '-'
                 RoleArn: !Ref DevPipelineExecutionRole
+          - !Ref AWS::NoValue
 
+        - !If
+          - IsFeatureBranchPipeline
+          - Name: TestFeature
+            Actions:
               - Name: IntegrationTest
-                RunOrder: 3
                 ActionTypeId:
                   Category: Test
                   Owner: AWS
@@ -376,7 +380,12 @@ Resources:
                 OutputArtifacts:
                   - Name: !Sub "${ServiceName}-${GitBranch}-Dev-ChangeSet"
                 RoleArn: !Ref DevPipelineExecutionRole
+          - !Ref AWS::NoValue
 
+        - !If
+          - IsMainBranchPipeline
+          - Name: TestDev
+            Actions:
               - Name: IntegrationTest
                 ActionTypeId:
                   Category: Test
