@@ -168,9 +168,10 @@ Resources:
                 - Name: !Sub ${AWS::StackName}ChangeSet
               RunOrder: 2
 
-        - Name: UnitTest
+        - Name: TestBuildPackage
           Actions:
             - Name: UnitTest
+              RunOrder: 1
               ActionTypeId:
                 Category: Test
                 Owner: AWS
@@ -181,10 +182,8 @@ Resources:
               InputArtifacts:
                 - Name: SourceCodeAsZip
 
-
-        - Name: BuildAndPackage
-          Actions:
             - Name: CodeBuild
+              RunOrder: 2
               ActionTypeId:
                 Category: Build
                 Owner: AWS
