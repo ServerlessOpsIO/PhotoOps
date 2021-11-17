@@ -95,9 +95,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      DeadLetterQueue:
-        Type: 'SQS'
-        TargetArn: !GetAtt IngestS3EventDlqQueue.Arn
       Events:
         SnsEvent:
           Type: SNS
@@ -108,6 +105,10 @@ Resources:
           OnSuccess:
             Type: EventBridge
             Destination: !GetAtt EventBus.Arn
+          OnFailure:
+            Type: 'SQS'
+            Destination: !GetAtt IngestS3EventDlqQueue.Arn
+
 
   IngestS3EventDlqQueue:
     Type: AWS::SQS::Queue
@@ -139,9 +140,6 @@ Resources:
               Action:
                 - sts:AssumeRole
               Resource: !GetAtt PhotoOpsCrossAccountIamRole.Arn
-      DeadLetterQueue:
-        Type: 'SQS'
-        TargetArn: !GetAtt GetExifDataDlqQueue.Arn
       Events:
         EventBridgeEvent:
           Type: EventBridgeRule
@@ -167,6 +165,9 @@ Resources:
           OnSuccess:
             Type: EventBridge
             Destination: !GetAtt EventBus.Arn
+          OnFailure:
+            Type: 'SQS'
+            Destination: !GetAtt GetExifDataDlqQueue.Arn
 
   GetExifDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -183,9 +184,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      DeadLetterQueue:
-        Type: 'SQS'
-        TargetArn: !GetAtt GetExifCameraDataDlqQueue.Arn
       Events:
         EventBridgeEvent:
           Type: EventBridgeRule
@@ -207,6 +205,9 @@ Resources:
           OnSuccess:
             Type: EventBridge
             Destination: !GetAtt EventBus.Arn
+          OnFailure:
+            Type: 'SQS'
+            Destination: !GetAtt GetExifCameraDataDlqQueue.Arn
 
   GetExifCameraDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -223,9 +224,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      DeadLetterQueue:
-        Type: 'SQS'
-        TargetArn: !GetAtt GetExifLensDataDlqQueue.Arn
       Events:
         EventBridgeEvent:
           Type: EventBridgeRule
@@ -247,6 +245,9 @@ Resources:
           OnSuccess:
             Type: EventBridge
             Destination: !GetAtt EventBus.Arn
+          OnFailure:
+            Type: 'SQS'
+            Destination: !GetAtt GetExifLensDataDlqQueue.Arn
 
   GetExifLensDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -263,9 +264,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      DeadLetterQueue:
-        Type: 'SQS'
-        TargetArn: !GetAtt GetExifImageDataDlqQueue.Arn
       Events:
         EventBridgeEvent:
           Type: EventBridgeRule
@@ -287,6 +285,9 @@ Resources:
           OnSuccess:
             Type: EventBridge
             Destination: !GetAtt EventBus.Arn
+          OnFailure:
+            Type: 'SQS'
+            Destination: !GetAtt GetExifImageDataDlqQueue.Arn
 
   GetExifImageDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -303,9 +304,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      DeadLetterQueue:
-        Type: 'SQS'
-        TargetArn: !GetAtt GetExifLocationDataDlqQueue.Arn
       Events:
         EventBridgeEvent:
           Type: EventBridgeRule
@@ -327,6 +325,9 @@ Resources:
           OnSuccess:
             Type: EventBridge
             Destination: !GetAtt EventBus.Arn
+          OnFailure:
+            Type: 'SQS'
+            Destination: !GetAtt GetExifLocationDataDlqQueue.Arn
 
   GetExifLocationDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -343,9 +344,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      DeadLetterQueue:
-        Type: 'SQS'
-        TargetArn: !GetAtt GetFileDataDlqQueue.Arn
       Events:
         EventBridgeEvent:
           Type: EventBridgeRule
@@ -367,6 +365,9 @@ Resources:
           OnSuccess:
             Type: EventBridge
             Destination: !GetAtt EventBus.Arn
+          OnFailure:
+            Type: 'SQS'
+            Destination: !GetAtt GetFileDataDlqQueue.Arn
 
   GetFileDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -386,9 +387,6 @@ Resources:
       Environment:
         Variables:
           DDB_TABLE_NAME: !Ref DynamoDBTable
-      DeadLetterQueue:
-        Type: 'SQS'
-        TargetArn: !GetAtt PutDdbItemDlqQueue.Arn
       Policies:
         - Statement:
           - Effect: "Allow"
@@ -417,6 +415,9 @@ Resources:
           OnSuccess:
             Type: EventBridge
             Destination: !GetAtt EventBus.Arn
+          OnFailure:
+            Type: 'SQS'
+            Destination: !GetAtt PutDdbItemDlqQueue.Arn
 
   PutDdbItemDlqQueue:
     Type: AWS::SQS::Queue
@@ -455,9 +456,6 @@ Resources:
       Timeout: 30
       Layers:
         - !Ref CommonLayer
-      DeadLetterQueue:
-        Type: 'SQS'
-        TargetArn: !GetAtt CreateJpegFromRawDlqQueue.Arn
       Environment:
         Variables:
           PHOTOOPS_S3_BUCKET: !Ref PhotoOpsBucket
@@ -480,6 +478,9 @@ Resources:
           OnSuccess:
             Type: EventBridge
             Destination: !GetAtt EventBus.Arn
+          OnFailure:
+            Type: 'SQS'
+            Destination: !GetAtt CreateJpegFromRawDlqQueue.Arn
 
   CreateJpegFromRawDlqQueue:
     Type: AWS::SQS::Queue
