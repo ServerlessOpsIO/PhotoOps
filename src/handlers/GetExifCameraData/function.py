@@ -43,7 +43,6 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
     sk = 'camera#v0'
     exif_data = ExifDataItem(**event)
     camera_data = _get_exif_camera_data(exif_data)
-    print(camera_data.__dict__)
     camera_data_item = CameraExifDataItem(
         **{
             'pk': pk,
