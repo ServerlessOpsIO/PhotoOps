@@ -20,8 +20,6 @@ BUCKET_PATH = IMAGE_BUCKET_PATH[1].strip('/') if len(IMAGE_BUCKET_PATH) > 1 else
 
 DATA_DIR = './data'
 EVENT_DIR = os.path.join(DATA_DIR, 'events')
-IMAGE_DIR = os.path.join(DATA_DIR, 'images')
-MODEL_DIR = os.path.join(DATA_DIR, 'models')
 
 ## AWS
 @pytest.fixture()
@@ -107,6 +105,7 @@ def s3_put_event(generic_s3_put_notification, sns_topic_arn, request) -> S3Event
     return s3_notification_event
 
 
+### Tests
 def test_invoke_handler_s3_put(generic_sns_s3_put_event, generic_s3_put_notification, lambda_client, lambda_function_name):
     '''Test invoking handler with a PUT event'''
     resp = lambda_client.invoke(
