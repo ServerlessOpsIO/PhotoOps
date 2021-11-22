@@ -37,6 +37,6 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
             }
         }
     )
-    LOGGER.info('Response', extra={"message_object": response})
+    LOGGER.info('Response', extra={"message_object": asdict(response)})
 
     return response

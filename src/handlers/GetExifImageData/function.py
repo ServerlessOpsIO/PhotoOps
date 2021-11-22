@@ -143,6 +143,6 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
 
     response = Response(**{'Item': image_data_item})
 
-    LOGGER.info('Response', extra={"message_object": response})
+    LOGGER.info('Response', extra={"message_object": asdict(response)})
 
     return response
