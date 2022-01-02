@@ -102,12 +102,12 @@ function:
 unit-test:
 	$(info running unit tests)
 	# Integration tests don't need code coverage
-	pipenv run pytest tests/unit
+	pipenv run pytest -vv tests/unit
 
 integ-test:
 	$(info running integration tests)
 	# Integration tests don't need code coverage
-	pipenv run pytest tests/integration
+	pipenv run pytest -vv tests/integration
 
 test:
 	$(info running tests)
