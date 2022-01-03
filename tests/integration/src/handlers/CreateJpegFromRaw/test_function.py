@@ -79,51 +79,46 @@ def s3_bucket_name(cfn_client) -> str:
 
 
 ### Events
+@pytest.fixture(params=[
+    'test_image_nikon.NEF',
+    'test_image_sony.ARW',
+    'large_test_image_nikon.NEF'
+    'corrupt_test_image_data_append.NEF',
+    'corrupt_test_image_data_prepend.NEF'
+])
+def image_name(request):
+    '''Return an image file name'''
+    return request.param
+
 @pytest.fixture
 def base_eventbridge_event():
     '''Base EventBridge event'''
     with open(os.path.join(EVENT_DIR, 'CreateJpegFromRaw-event-eb.json')) as f:
         return json.load(f)
 
-@pytest.fixture(params=['test_image_nikon.NEF'])
-def eventbridge_event(base_eventbridge_event, request):
+@pytest.fixture
+def eventbridge_event(base_eventbridge_event, image_name):
     '''EventBridge event'''
-    base_eventbridge_event['pk'] = '{}#{}/{}'.format(TEST_BUCKET_NAME, TEST_BUCKET_PATH, request.param)
-    return base_eventbridge_event
-
-@pytest.fixture(params=['test_image_sony.ARW', 'large_test_image_nikon.NEF'])
-def eventbridge_event_large_file(base_eventbridge_event, request):
-    '''EventBridge event'''
-    base_eventbridge_event['pk'] = '{}#{}/{}'.format(TEST_BUCKET_NAME, TEST_BUCKET_PATH, request.param)
+    base_eventbridge_event['pk'] = '{}#{}/{}'.format(TEST_BUCKET_NAME, TEST_BUCKET_PATH, image_name)
     return base_eventbridge_event
 
 @pytest.fixture
-def eventbridge_event_non_existent_object(base_eventbridge_event):
-    '''EventBridge event with missing object'''
-    base_eventbridge_event['pk'] = '{}{}'.format(base_eventbridge_event['pk'], '.fake')
-    return base_eventbridge_event
-
-@pytest.fixture(params=['corrupt_test_image_data_append.NEF'])
-def eventbridge_event_corrupt_image_data_append(base_eventbridge_event, request):
-    '''EventBridge event'''
-    base_eventbridge_event['pk'] = '{}#{}/{}'.format(TEST_BUCKET_NAME, TEST_BUCKET_PATH, request.param)
-    return base_eventbridge_event
-
-@pytest.fixture(params=['corrupt_test_image_data_prepend.NEF'])
-def eventbridge_event_corrupt_image_data_prepend(base_eventbridge_event, request):
-    '''EventBridge event'''
-    base_eventbridge_event['pk'] = '{}#{}/{}'.format(TEST_BUCKET_NAME, TEST_BUCKET_PATH, request.param)
-    return base_eventbridge_event
-
-@pytest.fixture
-def function_response():
-    '''Generic EventBridge event'''
-    with open(os.path.join(EVENT_DIR, 'CreateJpegFromRaw-output.json')) as f:
+def expected_response(image_name):
+    '''Function response'''
+    file_name = 'CreateJpegFromRaw-output-{}.json'.format(image_name)
+    with open(os.path.join(EVENT_DIR, file_name)) as f:
         return json.load(f)
 
 
 ### Tests
-def test_invoke_handler(eventbridge_event, lambda_client, lambda_function_name):
+@pytest.mark.parametrize('image_name', ['test_image_nikon.NEF'])
+def test_invoke_handler(
+        eventbridge_event,
+        expected_response,
+        lambda_client,
+        lambda_function_name,
+        image_name
+    ):
     '''Test invoking handler with a happy event works'''
     resp = lambda_client.invoke(
         FunctionName=lambda_function_name,
@@ -133,23 +128,37 @@ def test_invoke_handler(eventbridge_event, lambda_client, lambda_function_name):
     resp_body = json.loads(resp.pop('Payload').read().decode())
 
     assert resp['StatusCode'] == 200
-    assert resp_body == {}
+    assert resp_body == expected_response
 
-def test_invoke_handler_get_image_failure(eventbridge_event_non_existent_object, lambda_client, lambda_function_name):
+
+@pytest.mark.parametrize('image_name', ['test_image_nikon.NEF.fake'])
+def test_invoke_handler_get_image_failure(
+        eventbridge_event,
+        lambda_client,
+        lambda_function_name,
+        image_name
+    ):
     '''Test invoking handler with a non-fetchable image'''
     resp = lambda_client.invoke(
         FunctionName=lambda_function_name,
         LogType='Tail',
-        Payload=json.dumps(eventbridge_event_non_existent_object).encode('utf-8')
+        Payload=json.dumps(eventbridge_event).encode('utf-8')
     )
     resp_body = json.loads(resp.pop('Payload').read().decode())
 
     assert resp['StatusCode'] == 200
     assert resp_body['errorType'] == 'ClientError'
-    assert resp_body['errorMessage'] == 'An error occurred (403) when calling the HeadObject operation: Forbidden'
+    assert resp_body['errorMessage'] == 'An error occurred (403) when calling the HeadObject operation: Not Found'
 
+
+@pytest.mark.parametrize('image_name', ['test_image_nikon.NEF'])
 @pytest.mark.skip(reason='Not sure ho to cause')
-def test_invoke_handler_put_image_failure(eventbridge_event, lambda_client, lambda_function_name):
+def test_invoke_handler_put_image_failure(
+        eventbridge_event,
+        lambda_client,
+        lambda_function_name,
+        image_name
+    ):
     '''Test invoking handler and a file that cannot be uploaded'''
     resp = lambda_client.invoke(
         FunctionName=lambda_function_name,
@@ -161,32 +170,38 @@ def test_invoke_handler_put_image_failure(eventbridge_event, lambda_client, lamb
     assert resp['StatusCode'] == 200
     assert resp_body == {}
 
+
+@pytest.mark.parametrize('image_name', ['corrupt_test_image_data_append.NEF'])
 def test_invoke_handler_convert_to_jpeg_corrupt_file(
-        eventbridge_event_corrupt_image_data_append,
+        eventbridge_event,
         lambda_client,
-        lambda_function_name
+        lambda_function_name,
+        image_name
     ):
     '''Test invoking handler and a file that cannot be converted'''
     resp = lambda_client.invoke(
         FunctionName=lambda_function_name,
         LogType='Tail',
-        Payload=json.dumps(eventbridge_event_corrupt_image_data_append).encode('utf-8')
+        Payload=json.dumps(eventbridge_event).encode('utf-8')
     )
     resp_body = json.loads(resp.pop('Payload').read().decode())
 
     assert resp['StatusCode'] == 200
     assert resp_body == {}
 
+
+@pytest.mark.parametrize('image_name', ['corrupt_test_image_data_prepend.NEF'])
 def test_invoke_handler_convert_to_jpeg_corrupt_file_failure(
-        eventbridge_event_corrupt_image_data_prepend,
+        eventbridge_event,
         lambda_client,
-        lambda_function_name
+        lambda_function_name,
+        image_name
     ):
     '''Test invoking handler and a file that cannot be converted'''
     resp = lambda_client.invoke(
         FunctionName=lambda_function_name,
         LogType='Tail',
-        Payload=json.dumps(eventbridge_event_corrupt_image_data_prepend).encode('utf-8')
+        Payload=json.dumps(eventbridge_event).encode('utf-8')
     )
     resp_body = json.loads(resp.pop('Payload').read().decode())
 
@@ -194,18 +209,27 @@ def test_invoke_handler_convert_to_jpeg_corrupt_file_failure(
     assert resp_body['errorType'] == 'LibRawFileUnsupportedError'
     assert resp_body['errorMessage'] == 'Unsupported file format or not RAW file'
 
-def test_invoke_handler_large_file(eventbridge_event_large_file, lambda_client, lambda_function_name):
+
+@pytest.mark.parametrize('image_name', ['test_image_sony.ARW', 'large_test_image_nikon.NEF'])
+def test_invoke_handler_large_file(
+        eventbridge_event,
+        lambda_client,
+        lambda_function_name,
+        image_name
+    ):
     '''Test invoking handler and a large file.'''
     resp = lambda_client.invoke(
         FunctionName=lambda_function_name,
         LogType='Tail',
-        Payload=json.dumps(eventbridge_event_large_file).encode('utf-8')
+        Payload=json.dumps(eventbridge_event).encode('utf-8')
     )
     resp_body = json.loads(resp.pop('Payload').read().decode())
 
     assert resp['StatusCode'] == 200
     assert resp_body == {}
 
+
+@pytest.mark.skip(reason='TODO')
 def test_put_event():
     '''Test putting event on EventBridge'''
     pass
