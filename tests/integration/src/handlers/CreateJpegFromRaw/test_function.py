@@ -15,7 +15,7 @@ from mypy_boto3_s3 import S3Client
 STACK_NAME = os.environ.get('STACK_NAME')
 FUNCTION_LOGICAL_ID = 'CreateJpegFromRaw'
 EVENT_BUS_LOGICAL_ID = 'EventBus'
-S3_BUCKET_NAME = 'PhotoOpsBucket'
+S3_BUCKET_LOGICAL_ID = 'PhotoOpsBucket'
 
 TEST_IMAGE_BUCKET_PATH = os.environ.get('TEST_PHOTO_IMAGE_BUCKET_PATH', 'DUMMY_BUCKET').strip('/').split('/', 1)
 TEST_BUCKET_NAME = TEST_IMAGE_BUCKET_PATH[0]
@@ -73,7 +73,7 @@ def s3_bucket_name(cfn_client) -> str:
     '''Return the S3 bucket name'''
     s3_bucket = cfn_client.describe_stack_resource(
         StackName=STACK_NAME,
-        LogicalResourceId=S3_BUCKET_NAME
+        LogicalResourceId=S3_BUCKET_LOGICAL_ID
     )
     return s3_bucket['StackResourceDetail']['PhysicalResourceId']
 
@@ -103,11 +103,17 @@ def eventbridge_event(base_eventbridge_event, image_name):
     return base_eventbridge_event
 
 @pytest.fixture
-def expected_response(image_name):
+def expected_response(image_name, s3_bucket_name):
     '''Function response'''
-    file_name = 'CreateJpegFromRaw-output-{}.json'.format(image_name)
-    with open(os.path.join(EVENT_DIR, file_name)) as f:
-        return json.load(f)
+    with open(os.path.join(EVENT_DIR, 'CreateJpegFromRaw-output.json')) as f:
+        resp = json.load(f)
+
+        resp['Item']['pk'] = '{}#{}/{}'.format(TEST_BUCKET_NAME, TEST_BUCKET_PATH, image_name)
+        resp['Item']['original_s3_bucket'] = TEST_BUCKET_NAME
+        resp['Item']['s3_bucket'] = s3_bucket_name
+        resp['Item']['s3_object_key'] = 'cache/{}/images/{}.jpg'.format(TEST_BUCKET_NAME, image_name)
+
+        return resp
 
 
 ### Tests
@@ -128,6 +134,12 @@ def test_invoke_handler(
     resp_body = json.loads(resp.pop('Payload').read().decode())
 
     assert resp['StatusCode'] == 200
+
+    del resp_body['Item']['expiration_date_time']
+    del expected_response['Item']['expiration_date_time']
+    del resp_body['Item']['size']
+    del expected_response['Item']['size']
+
     assert resp_body == expected_response
 
 
@@ -148,13 +160,14 @@ def test_invoke_handler_get_image_failure(
 
     assert resp['StatusCode'] == 200
     assert resp_body['errorType'] == 'ClientError'
-    assert resp_body['errorMessage'] == 'An error occurred (403) when calling the HeadObject operation: Not Found'
+    assert resp_body['errorMessage'] == 'An error occurred (403) when calling the HeadObject operation: Forbidden'
 
 
 @pytest.mark.parametrize('image_name', ['test_image_nikon.NEF'])
 @pytest.mark.skip(reason='Not sure ho to cause')
 def test_invoke_handler_put_image_failure(
         eventbridge_event,
+        expected_response,
         lambda_client,
         lambda_function_name,
         image_name
@@ -168,12 +181,19 @@ def test_invoke_handler_put_image_failure(
     resp_body = json.loads(resp.pop('Payload').read().decode())
 
     assert resp['StatusCode'] == 200
-    assert resp_body == {}
+
+    del resp_body['Item']['expiration_date_time']
+    del expected_response['Item']['expiration_date_time']
+    del resp_body['Item']['size']
+    del expected_response['Item']['size']
+
+    assert resp_body == expected_response
 
 
 @pytest.mark.parametrize('image_name', ['corrupt_test_image_data_append.NEF'])
 def test_invoke_handler_convert_to_jpeg_corrupt_file(
         eventbridge_event,
+        expected_response,
         lambda_client,
         lambda_function_name,
         image_name
@@ -187,7 +207,13 @@ def test_invoke_handler_convert_to_jpeg_corrupt_file(
     resp_body = json.loads(resp.pop('Payload').read().decode())
 
     assert resp['StatusCode'] == 200
-    assert resp_body == {}
+
+    del resp_body['Item']['expiration_date_time']
+    del expected_response['Item']['expiration_date_time']
+    del resp_body['Item']['size']
+    del expected_response['Item']['size']
+
+    assert resp_body == expected_response
 
 
 @pytest.mark.parametrize('image_name', ['corrupt_test_image_data_prepend.NEF'])
@@ -213,6 +239,7 @@ def test_invoke_handler_convert_to_jpeg_corrupt_file_failure(
 @pytest.mark.parametrize('image_name', ['test_image_sony.ARW', 'large_test_image_nikon.NEF'])
 def test_invoke_handler_large_file(
         eventbridge_event,
+        expected_response,
         lambda_client,
         lambda_function_name,
         image_name
@@ -226,7 +253,12 @@ def test_invoke_handler_large_file(
     resp_body = json.loads(resp.pop('Payload').read().decode())
 
     assert resp['StatusCode'] == 200
-    assert resp_body == {}
+
+    del resp_body['Item']['expiration_date_time']
+    del expected_response['Item']['expiration_date_time']
+    del resp_body['Item']['size']
+    del expected_response['Item']['size']
+    assert resp_body == expected_response
 
 
 @pytest.mark.skip(reason='TODO')
