@@ -601,6 +601,14 @@ Resources:
       Description: "Ingest SNS topic ARN"
       Value: !Ref PhotoOpsIngestTopic
 
+  PhotoOpsBucketName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/PhotoOpsAI/${ServiceName}/${ServiceEnv}/PhotoOpsBucketName"
+      Type: String
+      Description: "Name of PhotoOps image bucket"
+      Value: !Ref PhotoOpsBucket
+
   DynamoDBTableName:
     Type: AWS::SSM::Parameter
     Properties:
