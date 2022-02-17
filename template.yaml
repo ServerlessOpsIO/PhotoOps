@@ -609,6 +609,14 @@ Resources:
       Description: "DDB table name"
       Value: !Ref DynamoDBTable
 
+  DynamoDBTableArn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/PhotoOpsAI/${ServiceName}/${ServiceEnv}/DynamoDBTableArn"
+      Type: String
+      Description: "DDB table ARN"
+      Value: !GetAtt DynamoDBTable.Arn
+
   EventBusArn:
     Type: AWS::SSM::Parameter
     Properties:
