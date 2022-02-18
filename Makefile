@@ -97,7 +97,8 @@ function:
 	touch tests/integration/src/handlers/${F}/__init__.py
 	touch tests/integration/src/handlers/${F}/test_handler.py
 	echo "-e src/common/" > src/handlers/${F}/requirements.txt
-	touch data/events/${F}-{event,msg}.json
+	touch data/events/${F}-{event,data}.json
+	touch data/outputs/${F}-outputs.json
 
 unit-test:
 	$(info running unit tests)
