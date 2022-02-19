@@ -1,0 +1,44 @@
+{
+    "Comment": "Create JPEG of an image",
+    "StartAt": "Invoke CreateJpegFromRAW",
+    "States": {
+        "Invoke CreateJpegFromRAW": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "OutputPath": "$.Payload",
+            "Parameters": {
+                "Payload.$": "$",
+                "FunctionName": "${CreateJpegFromRawName}"
+            },
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                }
+            ],
+            "Next": "PutItem JPEG Data"
+        },
+        "PutItem JPEG Data": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::dynamodb:putItem",
+            "Parameters": {
+                "TableName": "${DdbTableName}",
+                "Item": {
+                    "pk": {
+                        "S": "TestRun"
+                    },
+                    "sk": {
+                        "S": "jpeg#v0"
+                    }
+                }
+            },
+            "End": true
+        }
+    }
+}

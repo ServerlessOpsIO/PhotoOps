@@ -136,22 +136,22 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
     '''Function entry'''
     LOGGER.info('Event', extra={"message_object": event})
 
-    pk = event.get('pk', '')
+    s3_bucket = event.get('s3_bucket', '')
+    s3_object_key = event.get('s3_object_key', '')
+
+    pk = '#'.join([s3_bucket, s3_object_key])
     sk = 'jpeg#v0'
-    s3_bucket, s3_object_key = pk.split('#')
 
     jpeg_data = _create_jpeg(s3_bucket, s3_object_key)
 
-    response = Response(
-        **{
-            'Item': {
-                'pk': pk,
-                'sk': sk,
-                **asdict(jpeg_data)
-            }
+    response = {
+        'Item': {
+            'pk': pk,
+            'sk': sk,
+            **jpeg_data.__dict__
         }
-    )
+    }
     LOGGER.info('Response', extra={"message_object": response})
 
-    return response
+    return Response(**response)
 

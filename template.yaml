@@ -453,14 +453,6 @@ Resources:
             Action:
               - s3:PutObject
             Resource: !Sub "${PhotoOpsBucket.Arn}/*"
-      EventInvokeConfig:
-        DestinationConfig:
-          OnSuccess:
-            Type: EventBridge
-            Destination: !GetAtt EventBus.Arn
-          OnFailure:
-            Type: 'SQS'
-            Destination: !GetAtt CreateJpegFromRawDlqQueue.Arn
 
   CreateJpegFromRawDlqQueue:
     Type: AWS::SQS::Queue
@@ -500,6 +492,83 @@ Resources:
                 Action:
                   - "s3:ListBucket"
                 Resource: "arn:aws:s3:::*/"
+
+
+  CreateJpegStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: src/state-machines/create-jpeg.json
+      DefinitionSubstitutions:
+        EventBusName: !Ref EventBus
+        DdbTableName: !Ref DynamoDBTable
+        CreateJpegFromRawName: !Ref CreateJpegFromRaw
+      Tracing:
+        Enabled: true
+      Logging:
+        IncludeExecutionData: true
+        Level: ERROR
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt CreateJpegLogGroup.Arn
+      Events:
+        EventBridgeRule:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !Ref EventBus
+            InputPath: "$.detail"
+            Pattern:
+              account:
+                - !Ref AWS::AccountId
+              detail-type:
+                - "Invoke:StateMachine:CreateJpeg"
+              detail:
+                s3_bucket:
+                  - exists: true
+                s3_object_key:
+                  - exists: true
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action:
+              - "lambda:InvokeFunction"
+            Resource:
+              - !GetAtt CreateJpegFromRaw.Arn
+          - Effect: Allow
+            Action:
+              - "dynamodb:putitem"
+            Resource:
+              - !GetAtt DynamoDBTable.Arn
+          - Effect: Allow
+            Action:
+              - "eventbridge:PutEvents"
+            Resource:
+              - !GetAtt EventBus.Arn
+          - Effect: Allow
+            Action:
+              - logs:CreateLogDelivery
+              - logs:GetLogDelivery
+              - logs:UpdateLogDelivery
+              - logs:DeleteLogDelivery
+              - logs:ListLogDeliveries
+              - logs:PutResourcePolicy
+              - logs:DescribeResourcePolicies
+              - logs:DescribeLogGroups
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:DescribeLogStream
+              - logs:DescribeLogGroups
+              - logs:PutLogEvents
+            Resource:
+              - !GetAtt CreateJpegLogGroup.Arn
+
+
+  CreateJpegLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/step-functions/CreateJpeg-${ServiceEnv}'
+      RetentionInDays: 7
 
 
   # FIXME: Need a DLQ
