@@ -56,6 +56,7 @@ def _get_exif_data(s3_bucket: str, s3_object: str, object_size: int) -> Tuple[An
     '''Get EXIF data from object in S3'''
     with TemporaryFile('wb+') as image:
         s3_cross_account_client = _get_cross_account_s3_client()
+        # FIXME: Need to clear temporary object
         s3_cross_account_client.download_fileobj(s3_bucket, s3_object, image)
         image.seek(0)
         ft: filetype.Type = filetype.guess(image)
@@ -134,8 +135,8 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
             'exif': exif_data
         }
     )
-    response = Response(**{'Item': exif_data_item})
+    response = {'Item': exif_data_item}
 
     LOGGER.info('Response', extra={"message_object": response})
 
-    return response
+    return Response(**response)

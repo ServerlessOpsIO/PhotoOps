@@ -141,8 +141,8 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
         }
     )
 
-    response = Response(**{'Item': image_data_item})
+    response = {'Item': image_data_item}
 
     LOGGER.info('Response', extra={"message_object": response})
 
-    return response
+    return Response(**response)
