@@ -10,12 +10,12 @@ import jsonschema
 import moto
 import pytest
 
+from boto3.dynamodb.transform import TypeSerializer
 from datetime import datetime, timedelta
-from typing import cast
 
 from common.test.aws import create_lambda_function_context
 
-CACHE_BUCKET_NAME = 'cache_bucket'
+CACHE_BUCKET_NAME = 'cache-bucket'
 os.environ['PHOTOOPS_S3_BUCKET'] = CACHE_BUCKET_NAME
 os.environ['CROSS_ACCOUNT_IAM_ROLE_ARN'] = 'arn:aws:iam::123456789012:role/PhotoOpsAI/CrossAccountAccess'
 
@@ -168,7 +168,6 @@ def test_handler(event: dict, expected_response: dict, image, S3_CLIENT, context
     S3_CLIENT.upload_fileobj(image, s3_bucket, s3_object_key)
 
     # Create image cache bucket
-    cache_bucket_name = 'cache_bucket'
     S3_CLIENT.create_bucket(
         Bucket=CACHE_BUCKET_NAME
     )
@@ -178,6 +177,11 @@ def test_handler(event: dict, expected_response: dict, image, S3_CLIENT, context
     expiration = resp['Item'].pop('expiration_date_time')
     expected_response['Item'].pop('expiration_date_time')
 
+    # FIXME: We should convert this
+    # serialize expected response into a DDB item
+    expected_ddb_items = expected_response.get('Item', {})
+    expected_response['Item'] = { k: TypeSerializer().serialize(v) for k, v in expected_ddb_items.items() }
+
     assert resp == expected_response
-    expiration = cast(str, expiration)
+    expiration = expiration.get('S')
     assert (datetime.utcnow() + timedelta(days=15)).date() == datetime.fromisoformat(expiration).date()
