@@ -28,15 +28,14 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
     sk = 'file#v0'
     exif_data = ExifDataItem(**event)
 
-    response = Response(
-        **{
-            'Item': {
-                'pk': pk,
-                'sk': sk,
-                **asdict(exif_data.file)
-            }
+    response = {
+        'Item': {
+            'pk': pk,
+            'sk': sk,
+            **asdict(exif_data.file)
         }
-    )
+    }
+
     LOGGER.info('Response', extra={"message_object": response})
 
-    return response
+    return Response(**response)

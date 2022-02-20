@@ -17,6 +17,7 @@ from mypy_boto3_s3.type_defs import PutObjectOutputTypeDef
 from mypy_boto3_sts import STSClient
 
 from common.models import JpegData, JpegDataItem, PutDdbItemAction
+from common.util.aws import serialize_ddb_item
 from common.util.dataclasses import lambda_dataclass_response
 
 LOGGER = Logger(utc=True)
@@ -130,28 +131,29 @@ def _create_jpeg(s3_bucket: str, s3_object_key: str) -> JpegData:
     return jpeg_data
 
 
-@LOGGER.inject_lambda_context
+@serialize_ddb_item
 @lambda_dataclass_response
+@LOGGER.inject_lambda_context
 def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
     '''Function entry'''
     LOGGER.info('Event', extra={"message_object": event})
 
-    pk = event.get('pk', '')
+    s3_bucket = event.get('s3_bucket', '')
+    s3_object_key = event.get('s3_object_key', '')
+
+    pk = '#'.join([s3_bucket, s3_object_key])
     sk = 'jpeg#v0'
-    s3_bucket, s3_object_key = pk.split('#')
 
     jpeg_data = _create_jpeg(s3_bucket, s3_object_key)
 
-    response = Response(
-        **{
-            'Item': {
-                'pk': pk,
-                'sk': sk,
-                **asdict(jpeg_data)
-            }
+    response = {
+        'Item': {
+            'pk': pk,
+            'sk': sk,
+            **jpeg_data.__dict__
         }
-    )
+    }
     LOGGER.info('Response', extra={"message_object": response})
 
-    return response
+    return Response(**response)
 

@@ -5,5 +5,10 @@ from typing import Any, Callable, Dict
 
 @lambda_handler_decorator
 def lambda_dataclass_response(handler: Callable[..., Any], event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
+    '''
+    Convert the returned dataclass object to a dictionary and return that.
+    AWS will handle serializing the dictionary to JSON.
+    '''
+
     response = handler(event, context)
     return asdict(response)
