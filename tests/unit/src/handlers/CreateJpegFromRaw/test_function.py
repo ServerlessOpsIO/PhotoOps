@@ -32,10 +32,10 @@ IMAGE_DIR = os.path.join(DATA_DIR, 'images')
 MODEL_DIR = os.path.join(DATA_DIR, 'models')
 
 EVENT = os.path.join(EVENT_DIR, 'CreateJpegFromRaw-event-eb.json')
-EVENT_SCHEMA = os.path.join(SCHEMA_DIR, 'ExifDataItem.schema.json')
+EVENT_SCHEMA = os.path.join(SCHEMA_DIR, 'CreateJpegStateMachineEvent.schema.json')
 RESPONSE = os.path.join(EVENT_DIR, 'CreateJpegFromRaw-output.json')
 DATA_SCHEMA = os.path.join(SCHEMA_DIR, 'JpegData.schema.json')
-RESPONSE_SCHEMA = os.path.join(SCHEMA_DIR, 'CreateJpegFromRaw.schema.json')
+RESPONSE_SCHEMA = os.path.join(SCHEMA_DIR, 'CreateJpegFromRawResponse.schema.json')
 
 ### AWS clients
 @pytest.fixture()
@@ -160,7 +160,8 @@ def test_handler(event: dict, expected_response: dict, image, S3_CLIENT, context
     )
 
     # Stage file
-    s3_bucket, s3_object_key = event.get('pk', '').split('#')
+    s3_bucket = event.get('s3_bucket', '')
+    s3_object_key = event.get('s3_object_key', '')
     S3_CLIENT.create_bucket(
         Bucket=s3_bucket
     )

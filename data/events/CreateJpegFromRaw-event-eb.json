@@ -1,4 +1,4 @@
 {
-    "s3_bucket": "MyBucket",
-    "s3_object_key": "my/object"
+    "s3_bucket": "photoopsai-bucket",
+    "s3_object_key": "images/test_image_nikon.NEF"
 }
