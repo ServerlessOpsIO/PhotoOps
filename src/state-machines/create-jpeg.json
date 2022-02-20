@@ -18,7 +18,7 @@
                         "Lambda.SdkClientException"
                     ],
                     "IntervalSeconds": 2,
-                    "MaxAttempts": 6,
+                    "MaxAttempts": 3,
                     "BackoffRate": 2
                 }
             ],
@@ -30,12 +30,14 @@
             "Parameters": {
                 "TableName": "${DdbTableName}",
                 "Item": {
-                    "pk": {
-                        "S": "TestRun"
-                    },
-                    "sk": {
-                        "S": "jpeg#v0"
-                    }
+                    "pk.$": "$.Item.pk",
+                    "sk.$": "$.Item.sk",
+                    "s3_bucket.$": "$.Item.s3_bucket",
+                    "s3_object_key.$": "$.Item.s3_object_key",
+                    "size": { "N.$": "States.Format('{}', $.Item.size)" },
+                    "expiration_date_time.$": "$.Item.expiration_date_time",
+                    "original_s3_bucket.$": "$.Item.original_s3_bucket",
+                    "original_s3_object_key.$": "$.Item.original_s3_object_key"
                 }
             },
             "End": true
