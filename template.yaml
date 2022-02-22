@@ -570,6 +570,89 @@ Resources:
       LogGroupName: !Sub '/aws/step-functions/CreateJpeg-${ServiceEnv}'
       RetentionInDays: 7
 
+  # FIXME: We should add a "Serialize DDB event function to this."
+  DdbOpsStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: src/state-machines/ddb-ops.yaml
+      DefinitionSubstitutions:
+        DdbTableName: !Ref DynamoDBTable
+        Item: '$.Item'
+        Key: '$.Key'
+        UpdateExpression: '$.UpdateExpression'
+        ExpressionAttributeNames: '$.ExpressionAttributeNames'
+        ExpressionAttributeValues: '$.ExpressionAttributeValues'
+      Tracing:
+        Enabled: true
+      Logging:
+        IncludeExecutionData: true
+        Level: ERROR
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt DdbOpsLogGroup.Arn
+      Events:
+        DdbOp:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !Ref EventBus
+            InputPath: "$.detail"
+            Pattern:
+              detail-type:
+                - prefix: "AWS::DynamoDB"
+                - anything-but:
+                    prefix: "AWS::DynamoDB::Batch"
+              detail:
+                TableName:
+                  - !Ref DynamoDBTable
+        DdbBatchOp:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !Ref EventBus
+            InputPath: "$.detail"
+            Pattern:
+              detail-type:
+                - prefix: "AWS::DynamoDB::Batch"
+              detail:
+                RequestItems:
+                  "!Ref DynamoDBTable":
+                    - exists: true
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:PutItem"
+              - "dynamodb:GetItem"
+              - "dynamodb:UpdateItem"
+              - "dynamodb:UpdateItem"
+            Resource:
+              - !GetAtt DynamoDBTable.Arn
+          - Effect: Allow
+            Action:
+              - logs:CreateLogDelivery
+              - logs:GetLogDelivery
+              - logs:UpdateLogDelivery
+              - logs:DeleteLogDelivery
+              - logs:ListLogDeliveries
+              - logs:PutResourcePolicy
+              - logs:DescribeResourcePolicies
+              - logs:DescribeLogGroups
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:DescribeLogStream
+              - logs:DescribeLogGroups
+              - logs:PutLogEvents
+            Resource:
+              - !GetAtt DdbOpsLogGroup.Arn
+
+
+  DdbOpsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/step-functions/DdbOps-${ServiceEnv}'
+      RetentionInDays: 7
+
 
   # FIXME: Need a DLQ
   EventBus:
