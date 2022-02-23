@@ -64,15 +64,15 @@ States:
   HasStateToken:
     Type: Choice
     Choices:
-      - Variable: $$.Execution.Input.TaskToken
+      - Variable: $$.Execution.Input.detail.X_StepFunctionTaskToken
         IsPresent: true
         Next: SendTaskSuccessCallBack
     Default: Success
   SendTaskSuccessCallBack:
     Type: Task
     Parameters:
-      Output: $
-      TaskToken.$: $$.Execution.Input.TaskToken
+      Output.$: $
+      TaskToken.$: $$.Execution.Input.detail.X_StepFunctionTaskToken
     Resource: arn:aws:states:::aws-sdk:sfn:sendTaskSuccess
     Next: Success
   Success:

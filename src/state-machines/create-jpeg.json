@@ -26,11 +26,12 @@
         },
         "PutDdbPutEvent": {
             "Type": "Task",
-            "Resource": "arn:aws:states:::events:putEvents",
+            "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
             "Parameters": {
                 "Entries": [
                     {
                         "Detail": {
+                            "X_StepFunctionTaskToken.$": "$$.Task.Token",
                             "TableName": "${DdbTableName}",
                             "Item.$": "$.Item"
                         },
