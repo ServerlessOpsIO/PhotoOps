@@ -575,6 +575,7 @@ Resources:
       LogGroupName: !Sub '/aws/step-functions/CreateJpeg-${ServiceEnv}'
       RetentionInDays: 7
 
+
   # FIXME: We should add a "Serialize DDB event function to this."
   DdbOpsStateMachine:
     Type: AWS::Serverless::StateMachine
@@ -603,8 +604,6 @@ Resources:
             Pattern:
               detail-type:
                 - prefix: "AWS::DynamoDB"
-                - anything-but:
-                    prefix: "AWS::DynamoDB::Batch"
               detail:
                 TableName:
                   - !Ref DynamoDBTable
