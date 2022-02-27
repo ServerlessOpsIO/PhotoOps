@@ -607,17 +607,17 @@ Resources:
               detail:
                 TableName:
                   - !Ref DynamoDBTable
-        DdbBatchOp:
-          Type: EventBridgeRule
-          Properties:
-            EventBusName: !Ref EventBus
-            Pattern:
-              detail-type:
-                - prefix: "AWS::DynamoDB::Batch"
-              detail:
-                RequestItems:
-                  "!Ref DynamoDBTable":
-                    - exists: true
+#        DdbBatchOp:
+#          Type: EventBridgeRule
+#          Properties:
+#            EventBusName: !Ref EventBus
+#            Pattern:
+#              detail-type:
+#                - prefix: "AWS::DynamoDB::Batch"
+#              detail:
+#                RequestItems:
+#                  "!Ref DynamoDBTable":
+#                    - exists: true
       Policies:
         - Statement:
           - Effect: Allow
