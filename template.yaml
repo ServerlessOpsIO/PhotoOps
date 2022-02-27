@@ -457,6 +457,26 @@ Resources:
   CreateJpegFromRawDlqQueue:
     Type: AWS::SQS::Queue
 
+
+  SerializeDdbItem:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: "Serialize a DDB Document item to a DDB API item"
+      CodeUri: src/handlers/SerializeDdbItem
+      Handler: function.handler
+      Runtime: python3.8
+      MemorySize: 128
+      Timeout: 3
+      Layers:
+        - !Ref CommonLayer
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt SerializeDdbItemDlqQueue.Arn
+
+  SerializeDdbItemDlqQueue:
+    Type: AWS::SQS::Queue
+
+
   PhotoOpsBucket:
     Type: AWS::S3::Bucket
 
