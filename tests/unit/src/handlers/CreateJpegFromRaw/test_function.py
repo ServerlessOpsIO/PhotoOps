@@ -177,11 +177,5 @@ def test_handler(event: dict, expected_response: dict, image, S3_CLIENT, context
     expiration = resp['Item'].pop('expiration_date_time')
     expected_response['Item'].pop('expiration_date_time')
 
-    # FIXME: We should convert this
-    # serialize expected response into a DDB item
-    expected_ddb_items = expected_response.get('Item', {})
-    expected_response['Item'] = { k: TypeSerializer().serialize(v) for k, v in expected_ddb_items.items() }
-
     assert resp == expected_response
-    expiration = expiration.get('S')
     assert (datetime.utcnow() + timedelta(days=15)).date() == datetime.fromisoformat(expiration).date()
