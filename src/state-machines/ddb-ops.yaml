@@ -1,0 +1,99 @@
+Comment: A description of my state machine
+StartAt: DdbOperationChoice
+States:
+  DdbOperationChoice:
+    Type: Choice
+    Choices:
+      - Or:
+          - Variable: $.detail-type
+            StringMatches: AWS::DynamoDB::PutItem
+          - Variable: $.detail-type
+            StringMatches: aws::dynamodb::putitem
+        Next: SerializeDdbItemInvoke
+      - Or:
+          - Variable: $.detail-type
+            StringMatches: AWS::DynamoDB::GetItem
+          - Variable: $.detail-type
+            StringMatches: aws::dynamodb::getitem
+        Next: GetItem
+      - Or:
+          - Variable: $.detail-type
+            StringMatches: AWS::DynamoDB::UpdateItem
+          - Variable: $.detail-type
+            StringMatches: aws::dynamodb::updateitem
+        Next: UpdateItem
+      - Or:
+          - Variable: $.detail-type
+            StringMatches: AWS::DynamoDB::DeleteItem
+          - Variable: $.detail-type
+            StringMatches: aws::dynamodb::deleteitem
+        Next: DeleteItem
+    Default: Fail
+    OutputPath: $.detail
+  SerializeDdbItemInvoke:
+    Type: Task
+    Resource: arn:aws:states:::lambda:invoke
+    Parameters:
+      Payload.$: $
+      FunctionName: ${SerializeDdbItemArn}
+    Retry:
+      - ErrorEquals:
+          - Lambda.ServiceException
+          - Lambda.AWSLambdaException
+          - Lambda.SdkClientException
+        IntervalSeconds: 2
+        MaxAttempts: 6
+        BackoffRate: 2
+    OutputPath: $.Payload
+    Next: PutItem
+  PutItem:
+    Type: Task
+    Resource: arn:aws:states:::dynamodb:putItem
+    Parameters:
+      TableName: "${DdbTableName}"
+      Item.$: $.Item
+    Next: HasStateToken
+  GetItem:
+    Type: Task
+    Resource: arn:aws:states:::dynamodb:getItem
+    Parameters:
+      TableName: "${DdbTableName}"
+      Key.$: $.Key
+    Next: HasStateToken
+  UpdateItem:
+    Type: Task
+    Resource: arn:aws:states:::dynamodb:updateItem
+    Parameters:
+      TableName: "${DdbTableName}"
+      Key.$: $.Key
+      UpdateExpression.$: $.UpdateExpression
+      ExpressionAttributeNames.$: $.ExpressionAttributeNames
+      ExpressionAttributeValues.$: $.ExpressionAttributeValues
+    Next: HasStateToken
+  DeleteItem:
+    Type: Task
+    Resource: arn:aws:states:::dynamodb:deleteItem
+    Parameters:
+      TableName: "${DdbTableName}"
+      Key.$: $.Key
+    Next: HasStateToken
+  HasStateToken:
+    Type: Choice
+    Choices:
+      - Variable: $$.Execution.Input.detail.X_StepFunctionTaskToken
+        IsPresent: true
+        Next: SendTaskSuccessCallBack
+    Default: Success
+  SendTaskSuccessCallBack:
+    Type: Task
+    Parameters:
+      Output.$: $
+      TaskToken.$: $$.Execution.Input.detail.X_StepFunctionTaskToken
+    Resource: arn:aws:states:::aws-sdk:sfn:sendTaskSuccess
+    Next: Success
+  Success:
+    Type: Succeed
+  Fail:
+    Type: Fail
+    Error: UnknownOperation
+    Cause: EventBus passed an event we don't know how to process.

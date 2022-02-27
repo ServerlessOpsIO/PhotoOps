@@ -22,14 +22,24 @@
                     "BackoffRate": 2
                 }
             ],
-            "Next": "PutItem JPEG Data"
+            "Next": "PutDdbPutEvent"
         },
-        "PutItem JPEG Data": {
+        "PutDdbPutEvent": {
             "Type": "Task",
-            "Resource": "arn:aws:states:::dynamodb:putItem",
+            "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
             "Parameters": {
-                "TableName": "${DdbTableName}",
-                "Item.$": "$.Item"
+                "Entries": [
+                    {
+                        "Detail": {
+                            "X_StepFunctionTaskToken.$": "$$.Task.Token",
+                            "TableName": "${DdbTableName}",
+                            "Item.$": "$.Item"
+                        },
+                        "DetailType": "AWS::DynamoDB::PutItem",
+                        "EventBusName": "${EventBusName}",
+                        "Source": "PhotoOps::CreateJpeg::PutDdbPutEvent"
+                    }
+                ]
             },
             "End": true
         }
