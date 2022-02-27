@@ -1,0 +1,312 @@
+{
+    "TableName": "MyTable",
+    "Item": {
+      "pk": {
+        "S": "string"
+      },
+      "sk": {
+        "S": "string"
+      },
+      "key": {
+        "S": "value"
+      },
+      "int": {
+        "N": "1"
+      },
+      "float": {
+        "N": "1.2345"
+      },
+      "bool": {
+        "BOOL": true
+      },
+      "null": {
+        "NULL": true
+      },
+      "array": {
+        "L": [
+          {
+            "S": "string"
+          },
+          {
+            "N": "1"
+          },
+          {
+            "N": "1.2345"
+          },
+          {
+            "BOOL": true
+          },
+          {
+            "NULL": true
+          },
+          {
+            "M": {
+              "key": {
+                "S": "value"
+              },
+              "int": {
+                "N": "1"
+              },
+              "float": {
+                "N": "1.2345"
+              },
+              "bool": {
+                "BOOL": true
+              },
+              "null": {
+                "NULL": true
+              },
+              "map": {
+                "M": {
+                  "key": {
+                    "S": "value"
+                  },
+                  "int": {
+                    "N": "1"
+                  },
+                  "float": {
+                    "N": "1.2345"
+                  },
+                  "bool": {
+                    "BOOL": true
+                  },
+                  "null": {
+                    "NULL": true
+                  },
+                  "array": {
+                    "L": [
+                      {
+                        "S": "string"
+                      },
+                      {
+                        "N": "1"
+                      },
+                      {
+                        "N": "1"
+                      },
+                      {
+                        "N": "2345"
+                      },
+                      {
+                        "BOOL": true
+                      },
+                      {
+                        "NULL": true
+                      }
+                    ]
+                  }
+                }
+              },
+              "array": {
+                "L": [
+                  {
+                    "S": "string"
+                  },
+                  {
+                    "N": "1"
+                  },
+                  {
+                    "N": "1.2345"
+                  },
+                  {
+                    "BOOL": true
+                  },
+                  {
+                    "NULL": true
+                  },
+                  {
+                    "M": {
+                      "key": {
+                        "S": "value"
+                      },
+                      "int": {
+                        "N": "1"
+                      },
+                      "float": {
+                        "N": "1.2345"
+                      },
+                      "array": {
+                        "L": [
+                          {
+                            "S": "string"
+                          },
+                          {
+                            "N": "1"
+                          },
+                          {
+                            "N": "1"
+                          },
+                          {
+                            "N": "2345"
+                          },
+                          {
+                            "BOOL": true
+                          },
+                          {
+                            "NULL": true
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "L": [
+              {
+                "S": "string"
+              },
+              {
+                "N": "1"
+              },
+              {
+                "N": "1.2345"
+              },
+              {
+                "BOOL": true
+              },
+              {
+                "NULL": true
+              },
+              {
+                "M": {
+                  "key": {
+                    "S": "value"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "map": {
+        "M": {
+          "key": {
+            "S": "value"
+          },
+          "int": {
+            "N": "1"
+          },
+          "float": {
+            "N": "1.2345"
+          },
+          "bool": {
+            "BOOL": true
+          },
+          "null": {
+            "NULL": true
+          },
+          "array": {
+            "L": [
+              {
+                "S": "string"
+              },
+              {
+                "N": "1"
+              },
+              {
+                "N": "1"
+              },
+              {
+                "N": "2345"
+              },
+              {
+                "BOOL": true
+              },
+              {
+                "NULL": true
+              },
+              {
+                "M": {
+                  "key": {
+                    "S": "value"
+                  },
+                  "int": {
+                    "N": "1"
+                  },
+                  "float": {
+                    "N": "1.2345"
+                  },
+                  "bool": {
+                    "BOOL": true
+                  },
+                  "null": {
+                    "NULL": true
+                  },
+                  "map": {
+                    "M": {
+                      "key": {
+                        "S": "value"
+                      },
+                      "int": {
+                        "N": "1"
+                      },
+                      "float": {
+                        "N": "1.2345"
+                      },
+                      "bool": {
+                        "BOOL": true
+                      },
+                      "null": {
+                        "NULL": true
+                      },
+                      "array": {
+                        "L": [
+                          {
+                            "S": "string"
+                          },
+                          {
+                            "N": "1"
+                          },
+                          {
+                            "N": "1"
+                          },
+                          {
+                            "N": "2345"
+                          },
+                          {
+                            "BOOL": true
+                          },
+                          {
+                            "NULL": true
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "L": [
+                  {
+                    "S": "string"
+                  },
+                  {
+                    "N": "1"
+                  },
+                  {
+                    "N": "1.2345"
+                  },
+                  {
+                    "BOOL": true
+                  },
+                  {
+                    "NULL": true
+                  },
+                  {
+                    "M": {
+                      "key": {
+                        "S": "value"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }

@@ -18,11 +18,8 @@ except:
 DATA_DIR = './data'
 EVENT_DIR = os.path.join(DATA_DIR, 'events')
 
-#EVENT = os.path.join(EVENT_DIR, 'GetExifData-output-test_image_nikon.NEF.json')
-#EVENT = os.path.join(EVENT_DIR, 'GetFileData-output.json')
-#RESPONSE = os.path.join(EVENT_DIR, 'SerializeDdbItem-output-GetFileData.json')
-EVENT = os.path.join(EVENT_DIR, 'GetExifImageData-output.json')
-RESPONSE = os.path.join(EVENT_DIR, 'SerializeDdbItem-output-GetExifImageData.json')
+EVENT = os.path.join(EVENT_DIR, 'SerializeDdbItem-event.json')
+RESPONSE = os.path.join(EVENT_DIR, 'SerializeDdbItem-output.json')
 
 
 ### Fixtures
@@ -42,7 +39,6 @@ def expected_response() -> dict:
     '''Return DDB item'''
     with open(RESPONSE) as f:
         return json.load(f)
-
 
 
 ### Tests

@@ -1,0 +1,114 @@
+{
+    "TableName": "MyTable",
+    "Item": {
+        "pk": "string",
+        "sk": "string",
+        "key": "value",
+        "int": 1,
+        "float": 1.2345,
+        "bool": true,
+        "null": null,
+        "array": [
+            "string",
+            1,
+            1.2345,
+            true,
+            null,
+            {
+                "key": "value",
+                "int": 1,
+                "float": 1.2345,
+                "bool": true,
+                "null": null,
+                "map": {
+                    "key": "value",
+                    "int": 1,
+                    "float": 1.2345,
+                    "bool": true,
+                    "null": null,
+                    "array": [
+                        "string",
+                        1,
+                        1,2345,
+                        true,
+                        null
+                    ]
+                },
+                "array": [
+                    "string",
+                    1,
+                    1.2345,
+                    true,
+                    null,
+                    {
+                        "key": "value",
+                        "int": 1,
+                        "float": 1.2345,
+                        "array": [
+                            "string",
+                            1,
+                            1,2345,
+                            true,
+                            null
+                        ]
+                    }
+                ]
+            },
+            [
+                "string",
+                1,
+                1.2345,
+                true,
+                null,
+                {
+                    "key": "value"
+                }
+            ]
+        ],
+        "map": {
+            "key": "value",
+            "int": 1,
+            "float": 1.2345,
+            "bool": true,
+            "null": null,
+            "array": [
+                "string",
+                1,
+                1,2345,
+                true,
+                null,
+                {
+                    "key": "value",
+                    "int": 1,
+                    "float": 1.2345,
+                    "bool": true,
+                    "null": null,
+                    "map": {
+                        "key": "value",
+                        "int": 1,
+                        "float": 1.2345,
+                        "bool": true,
+                        "null": null,
+                        "array": [
+                            "string",
+                            1,
+                            1,2345,
+                            true,
+                            null
+                        ]
+                    }
+                },
+                [
+                    "string",
+                    1,
+                    1.2345,
+                    true,
+                    null,
+                    {
+                        "key": "value"
+                    }
+                ]
+            ]
+        }
+    }
+}
