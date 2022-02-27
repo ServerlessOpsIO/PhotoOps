@@ -611,6 +611,7 @@ Resources:
         UpdateExpression: '$.UpdateExpression'
         ExpressionAttributeNames: '$.ExpressionAttributeNames'
         ExpressionAttributeValues: '$.ExpressionAttributeValues'
+        SerializeDdbItemArn: !GetAtt SerializeDdbItem.Arn
       Tracing:
         Enabled: true
       Logging:
@@ -675,6 +676,11 @@ Resources:
               - logs:PutLogEvents
             Resource:
               - !GetAtt DdbOpsLogGroup.Arn
+          - Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+            Resource:
+              - !GetAtt SerializeDdbItem.Arn
 
 
   DdbOpsLogGroup:

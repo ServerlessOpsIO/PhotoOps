@@ -9,7 +9,7 @@ States:
             StringMatches: AWS::DynamoDB::PutItem
           - Variable: $.detail-type
             StringMatches: aws::dynamodb::putitem
-        Next: PutItem
+        Next: SerializeDdbItemInvoke
       - Or:
           - Variable: $.detail-type
             StringMatches: AWS::DynamoDB::GetItem
@@ -30,6 +30,22 @@ States:
         Next: DeleteItem
     Default: Fail
     OutputPath: $.detail
+  SerializeDdbItemInvoke:
+    Type: Task
+    Resource: arn:aws:states:::lambda:invoke
+    Parameters:
+      Payload.$: $
+      FunctionName: ${SerializeDdbItemArn}
+    Retry:
+      - ErrorEquals:
+          - Lambda.ServiceException
+          - Lambda.AWSLambdaException
+          - Lambda.SdkClientException
+        IntervalSeconds: 2
+        MaxAttempts: 6
+        BackoffRate: 2
+    OutputPath: $.Payload
+    Next: PutItem
   PutItem:
     Type: Task
     Resource: arn:aws:states:::dynamodb:putItem
