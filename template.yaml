@@ -453,6 +453,9 @@ Resources:
             Action:
               - s3:PutObject
             Resource: !Sub "${PhotoOpsBucket.Arn}/*"
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt CreateJpegFromRawDlqQueue.Arn
 
   CreateJpegFromRawDlqQueue:
     Type: AWS::SQS::Queue
