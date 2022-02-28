@@ -563,11 +563,6 @@ Resources:
               - !GetAtt CreateJpegFromRaw.Arn
           - Effect: Allow
             Action:
-              - "dynamodb:putitem"
-            Resource:
-              - !GetAtt DynamoDBTable.Arn
-          - Effect: Allow
-            Action:
               - "eventbridge:PutEvents"
             Resource:
               - !GetAtt EventBus.Arn
@@ -586,7 +581,6 @@ Resources:
             Action:
               - logs:CreateLogStream
               - logs:DescribeLogStream
-              - logs:DescribeLogGroups
               - logs:PutLogEvents
             Resource:
               - !GetAtt CreateJpegLogGroup.Arn
@@ -651,7 +645,7 @@ Resources:
               - "dynamodb:PutItem"
               - "dynamodb:GetItem"
               - "dynamodb:UpdateItem"
-              - "dynamodb:UpdateItem"
+              - "dynamodb:DeleteItem"
             Resource:
               - !GetAtt DynamoDBTable.Arn
           - Effect: Allow
@@ -669,7 +663,6 @@ Resources:
             Action:
               - logs:CreateLogStream
               - logs:DescribeLogStream
-              - logs:DescribeLogGroups
               - logs:PutLogEvents
             Resource:
               - !GetAtt DdbOpsLogGroup.Arn
