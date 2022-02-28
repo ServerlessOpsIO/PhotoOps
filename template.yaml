@@ -600,8 +600,6 @@ Resources:
       DefinitionUri: src/state-machines/ddb-ops.yaml
       DefinitionSubstitutions:
         DdbTableName: !Ref DynamoDBTable
-        Item: '$.Item'
-        Key: '$.Key'
         UpdateExpression: '$.UpdateExpression'
         ExpressionAttributeNames: '$.ExpressionAttributeNames'
         ExpressionAttributeValues: '$.ExpressionAttributeValues'
