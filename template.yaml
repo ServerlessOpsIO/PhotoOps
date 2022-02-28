@@ -628,9 +628,6 @@ Resources:
             Pattern:
               detail-type:
                 - prefix: "AWS::DynamoDB"
-              detail:
-                TableName:
-                  - !Ref DynamoDBTable
 #        DdbBatchOp:
 #          Type: EventBridgeRule
 #          Properties:
