@@ -20,7 +20,12 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
 
     # Floats are not supported by DDB.
     event = json.loads(json.dumps(event), parse_float=Decimal)
-    ddb_items = event.get('Item')
-    event['Item'] = { k: TypeSerializer().serialize(v) for k, v in ddb_items.items() }
+    if event.get('Item') is not None:
+        ddb_items = event.get('Item')
+        event['Item'] = { k: TypeSerializer().serialize(v) for k, v in ddb_items.items() }
+    if event.get('Key') is not None:
+        ddb_key = event.get('Key')
+        event['Key'] = { k: TypeSerializer().serialize(v) for k, v in ddb_key.items() }
+
 
     return event
