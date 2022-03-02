@@ -15,7 +15,7 @@ States:
             StringMatches: AWS::DynamoDB::GetItem
           - Variable: $.detail-type
             StringMatches: aws::dynamodb::getitem
-        Next: SerializeDdbKeyInvoke
+        Next: GetItem
       - Or:
           - Variable: $.detail-type
             StringMatches: AWS::DynamoDB::UpdateItem
@@ -46,22 +46,6 @@ States:
         BackoffRate: 2
     OutputPath: $.Payload
     Next: PutItem
-  SerializeDdbKeyInvoke:
-    Type: Task
-    Resource: arn:aws:states:::lambda:invoke
-    Parameters:
-      Payload.$: $
-      FunctionName: ${SerializeDdbItemArn}
-    Retry:
-      - ErrorEquals:
-          - Lambda.ServiceException
-          - Lambda.AWSLambdaException
-          - Lambda.SdkClientException
-        IntervalSeconds: 2
-        MaxAttempts: 6
-        BackoffRate: 2
-    OutputPath: $.Payload
-    Next: GetItem
   PutItem:
     Type: Task
     Resource: arn:aws:states:::dynamodb:putItem
