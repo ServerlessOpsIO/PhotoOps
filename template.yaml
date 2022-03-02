@@ -408,6 +408,8 @@ Resources:
     Properties:
       TopicName: !Sub "${AWS::StackName}-PhotoOpsIngestTopic"
 
+  # FIXME: We should be using something like an external ID to limit who can
+  # write to this topic.
   PhotoOpsIngestTopicPolicy:
     Type: AWS::SNS::TopicPolicy
     Properties:
@@ -418,8 +420,9 @@ Resources:
         - Sid: "GlobalWrite"
           Effect: Allow
           Principal:
-            AWS: "*"
-          Action: sns:Publish
+            Service: "s3.amazonaws.com"
+          Action:
+            - sns:Publish
           Resource: !Ref PhotoOpsIngestTopic
       Topics:
         - !Ref PhotoOpsIngestTopic
