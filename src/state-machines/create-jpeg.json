@@ -1,8 +1,8 @@
 {
     "Comment": "Create JPEG of an image",
-    "StartAt": "Invoke CreateJpegFromRAW",
+    "StartAt": "CreateJpegFromRAWInvoke",
     "States": {
-        "Invoke CreateJpegFromRAW": {
+        "CreateJpegFromRAWInvoke": {
             "Type": "Task",
             "Resource": "arn:aws:states:::lambda:invoke",
             "OutputPath": "$.Payload",
