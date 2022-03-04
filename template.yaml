@@ -464,11 +464,11 @@ Resources:
     Type: AWS::SQS::Queue
 
 
-  SerializeDdbItem:
+  DdbSerializer:
     Type: AWS::Serverless::Function
     Properties:
-      Description: "Serialize a DDB Document item to a DDB API item"
-      CodeUri: src/handlers/SerializeDdbItem
+      Description: "Serialize a DDB Document or API item to vice versa"
+      CodeUri: src/handlers/DdbSerializer
       Handler: function.handler
       Runtime: python3.8
       MemorySize: 128
@@ -477,9 +477,9 @@ Resources:
         - !Ref CommonLayer
       DeadLetterQueue:
         Type: SQS
-        TargetArn: !GetAtt SerializeDdbItemDlqQueue.Arn
+        TargetArn: !GetAtt DdbSerializerQueue.Arn
 
-  SerializeDdbItemDlqQueue:
+  DdbSerializerQueue:
     Type: AWS::SQS::Queue
 
 
@@ -606,7 +606,7 @@ Resources:
         UpdateExpression: '$.UpdateExpression'
         ExpressionAttributeNames: '$.ExpressionAttributeNames'
         ExpressionAttributeValues: '$.ExpressionAttributeValues'
-        SerializeDdbItemArn: !GetAtt SerializeDdbItem.Arn
+        DdbSerializerArn: !GetAtt DdbSerializer.Arn
       Tracing:
         Enabled: true
       Logging:
@@ -671,7 +671,7 @@ Resources:
             Action:
               - lambda:InvokeFunction
             Resource:
-              - !GetAtt SerializeDdbItem.Arn
+              - !GetAtt DdbSerializer.Arn
 
 
   DdbOpsLogGroup:
