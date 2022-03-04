@@ -35,7 +35,7 @@ States:
     Resource: arn:aws:states:::lambda:invoke
     Parameters:
       Payload.$: $
-      FunctionName: ${SerializeDdbItemArn}
+      FunctionName: ${DdbSerializerArn}
     Retry:
       - ErrorEquals:
           - Lambda.ServiceException
@@ -59,7 +59,24 @@ States:
     Parameters:
       TableName: "${DdbTableName}"
       Key.$: $.Key
+    Next: DeserializeDdbItemInvoke
+  DeserializeDdbItemInvoke:
+    Type: Task
+    Resource: arn:aws:states:::lambda:invoke
+    Parameters:
+      Payload.$: $
+      FunctionName: ${DdbSerializerArn}
+    Retry:
+      - ErrorEquals:
+          - Lambda.ServiceException
+          - Lambda.AWSLambdaException
+          - Lambda.SdkClientException
+        IntervalSeconds: 2
+        MaxAttempts: 6
+        BackoffRate: 2
+    OutputPath: $.Payload
     Next: HasStateToken
+
   UpdateItem:
     Type: Task
     Resource: arn:aws:states:::dynamodb:updateItem
