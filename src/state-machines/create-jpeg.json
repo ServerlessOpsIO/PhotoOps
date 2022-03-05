@@ -41,7 +41,32 @@
                     }
                 ]
             },
-            "End": true
+            "ResultPath": "$.DdbPutResponse",
+            "Next": "HasStateToken"
+        },
+        "HasStateToken": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$$.Execution.Input.X_StepFunctionTaskToken",
+                    "IsPresent": true,
+                    "Next": "SendTaskSuccessCallBack"
+                }
+            ],
+            "Default": "Success"
+        },
+        "SendTaskSuccessCallBack": {
+            "Type": "Task",
+            "Parameters": {
+                "Output.$": "$",
+                "TaskToken.$": "$$.Execution.Input.X_StepFunctionTaskToken"
+            },
+            "Resource": "arn:aws:states:::aws-sdk:sfn:sendTaskSuccess",
+            "ResultPath": "$.SfnTaskSuccessResponse",
+            "Next": "Success"
+        },
+        "Success": {
+            "Type": "Succeed"
         }
     }
 }
