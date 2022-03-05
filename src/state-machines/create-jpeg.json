@@ -1,8 +1,8 @@
 {
     "Comment": "Create JPEG of an image",
-    "StartAt": "Invoke CreateJpegFromRAW",
+    "StartAt": "CreateJpegFromRAWInvoke",
     "States": {
-        "Invoke CreateJpegFromRAW": {
+        "CreateJpegFromRAWInvoke": {
             "Type": "Task",
             "Resource": "arn:aws:states:::lambda:invoke",
             "OutputPath": "$.Payload",
@@ -41,7 +41,32 @@
                     }
                 ]
             },
-            "End": true
+            "ResultPath": "$.DdbPutResponse",
+            "Next": "HasStateToken"
+        },
+        "HasStateToken": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$$.Execution.Input.X_StepFunctionTaskToken",
+                    "IsPresent": true,
+                    "Next": "SendTaskSuccessCallBack"
+                }
+            ],
+            "Default": "Success"
+        },
+        "SendTaskSuccessCallBack": {
+            "Type": "Task",
+            "Parameters": {
+                "Output.$": "$",
+                "TaskToken.$": "$$.Execution.Input.X_StepFunctionTaskToken"
+            },
+            "Resource": "arn:aws:states:::aws-sdk:sfn:sendTaskSuccess",
+            "ResultPath": "$.SfnTaskSuccessResponse",
+            "Next": "Success"
+        },
+        "Success": {
+            "Type": "Succeed"
         }
     }
 }
