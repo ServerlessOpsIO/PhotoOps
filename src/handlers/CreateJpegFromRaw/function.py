@@ -143,15 +143,13 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
     sk = 'jpeg#v0'
 
     jpeg_data = _create_jpeg(s3_bucket, s3_object_key)
+    jpeg_data_item = JpegDataItem(**{
+        'pk': pk,
+        'sk': sk,
+        **asdict(jpeg_data)
+    })
 
-    response = {
-        'Item': {
-            'pk': pk,
-            'sk': sk,
-            **jpeg_data.__dict__
-        }
-    }
-    LOGGER.info('Response', extra={"message_object": response})
-
-    return Response(**response)
+    response = Response(**{'Item': jpeg_data_item})
+    LOGGER.info('Response', extra={"message_object": asdict(response)})
+    return response
 

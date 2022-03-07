@@ -137,12 +137,10 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
         **{
             'pk': pk,
             'sk': sk,
-            **image_data.__dict__
+            **asdict(image_data)
         }
     )
 
-    response = {'Item': image_data_item}
-
-    LOGGER.info('Response', extra={"message_object": response})
-
-    return Response(**response)
+    response = Response(**{'Item': image_data_item})
+    LOGGER.info('Response', extra={"message_object": asdict(response)})
+    return response
