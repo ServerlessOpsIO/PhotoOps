@@ -89,7 +89,6 @@ Resources:
             Type: 'SQS'
             Destination: !GetAtt IngestS3EventDlqQueue.Arn
 
-
   IngestS3EventDlqQueue:
     Type: AWS::SQS::Queue
 
@@ -121,9 +120,6 @@ Resources:
                 - sts:AssumeRole
               Resource: !GetAtt PhotoOpsCrossAccountIamRole.Arn
 
-  GetExifDataDlqQueue:
-    Type: AWS::SQS::Queue
-
 
   GetExifCameraData:
     Type: AWS::Serverless::Function
@@ -136,9 +132,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-
-  GetExifCameraDataDlqQueue:
-    Type: AWS::SQS::Queue
 
 
   GetExifLensData:
@@ -153,9 +146,6 @@ Resources:
       Layers:
         - !Ref CommonLayer
 
-  GetExifLensDataDlqQueue:
-    Type: AWS::SQS::Queue
-
 
   GetExifImageData:
     Type: AWS::Serverless::Function
@@ -168,9 +158,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-
-  GetExifImageDataDlqQueue:
-    Type: AWS::SQS::Queue
 
 
   GetExifLocationData:
@@ -185,9 +172,6 @@ Resources:
       Layers:
         - !Ref CommonLayer
 
-  GetExifLocationDataDlqQueue:
-    Type: AWS::SQS::Queue
-
 
   GetFileData:
     Type: AWS::Serverless::Function
@@ -200,9 +184,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-
-  GetFileDataDlqQueue:
-    Type: AWS::SQS::Queue
 
 
   PhotoOpsIngestTopic:
@@ -258,12 +239,6 @@ Resources:
             Action:
               - s3:PutObject
             Resource: !Sub "${PhotoOpsBucket.Arn}/*"
-      DeadLetterQueue:
-        Type: SQS
-        TargetArn: !GetAtt CreateJpegFromRawDlqQueue.Arn
-
-  CreateJpegFromRawDlqQueue:
-    Type: AWS::SQS::Queue
 
 
   DdbSerializer:
@@ -277,12 +252,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      DeadLetterQueue:
-        Type: SQS
-        TargetArn: !GetAtt DdbSerializerQueue.Arn
-
-  DdbSerializerQueue:
-    Type: AWS::SQS::Queue
 
 
   PhotoOpsBucket:
