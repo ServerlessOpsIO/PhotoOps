@@ -77,7 +77,9 @@ class Ifd:
         digital_zoom_ratio: Optional[float] = None
         body_serial_number: Optional[str] = None
         lens_specification: Optional[List[int]] = None
+        lens_make: Optional[str] = None
         lens_model: Optional[str] = None
+        lens_serial_number: Optional[str] = None
 
         maker_note: Optional[List[int]] = field(default=None, metadata=config(field_name="MakerNote"))
 
@@ -162,6 +164,8 @@ class Ifd:
         opcode_list_2: Optional[List[int]] = field(default=None, metadata=config(field_name="OpcodeList2"))
         opcode_list_3: Optional[List[int]] = field(default=None, metadata=config(field_name="OpcodeList3"))
         cache_version: Optional[int] = None
+        nikon_nef_info: Optional[List[int]] = field(default=None, metadata=config(field_name="NikonNEFInfo"))
+        nikon_nef_sub_ifd1: Optional[List[int]] = field(default=None, metadata=config(field_name="NikonNEFSubIfd1"))
 
         # Unknown
         tag0x7001: Optional[List[int]] = None

@@ -1,0 +1,153 @@
+Comment: Get EXIF Data
+StartAt: GetExifDataInvoke
+States:
+  GetExifDataInvoke:
+    Type: Task
+    Resource: arn:aws:states:::lambda:invoke
+    OutputPath: $.Payload
+    Parameters:
+      FunctionName: ${GetExifDataArn}
+      Payload.$: $
+    Retry:
+      - ErrorEquals:
+          - Lambda.ServiceException
+          - Lambda.AWSLambdaException
+          - Lambda.SdkClientException
+        IntervalSeconds: 2
+        MaxAttempts: 6
+        BackoffRate: 2
+    Next: Parallel
+    InputPath: $.detail.responsePayload
+  Parallel:
+    Type: Parallel
+    Branches:
+      - StartAt: Pass
+        States:
+          Pass:
+            Type: Pass
+            End: true
+      - StartAt: GetExifCameraDataInvoke
+        States:
+          GetExifCameraDataInvoke:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke
+            OutputPath: $.Payload
+            Parameters:
+              Payload.$: $
+              FunctionName: ${GetExifCameraDataArn}
+            Retry:
+              - ErrorEquals:
+                  - Lambda.ServiceException
+                  - Lambda.AWSLambdaException
+                  - Lambda.SdkClientException
+                IntervalSeconds: 2
+                MaxAttempts: 6
+                BackoffRate: 2
+            End: true
+            InputPath: $.Item
+      - StartAt: GetExifImageDataInvoke
+        States:
+          GetExifImageDataInvoke:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke
+            OutputPath: $.Payload
+            Parameters:
+              Payload.$: $
+              FunctionName: ${GetExifImageDataArn}
+            Retry:
+              - ErrorEquals:
+                  - Lambda.ServiceException
+                  - Lambda.AWSLambdaException
+                  - Lambda.SdkClientException
+                IntervalSeconds: 2
+                MaxAttempts: 6
+                BackoffRate: 2
+            End: true
+            InputPath: $.Item
+      - StartAt: GetExifLensDataInvoke
+        States:
+          GetExifLensDataInvoke:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke
+            OutputPath: $.Payload
+            Parameters:
+              Payload.$: $
+              FunctionName: ${GetExifLensDataArn}
+            Retry:
+              - ErrorEquals:
+                  - Lambda.ServiceException
+                  - Lambda.AWSLambdaException
+                  - Lambda.SdkClientException
+                IntervalSeconds: 2
+                MaxAttempts: 6
+                BackoffRate: 2
+            End: true
+            InputPath: $.Item
+      - StartAt: GetExifLocationDataInvoke
+        States:
+          GetExifLocationDataInvoke:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke
+            OutputPath: $.Payload
+            Parameters:
+              Payload.$: $
+              FunctionName: ${GetExifLocationDataArn}
+            Retry:
+              - ErrorEquals:
+                  - Lambda.ServiceException
+                  - Lambda.AWSLambdaException
+                  - Lambda.SdkClientException
+                IntervalSeconds: 2
+                MaxAttempts: 6
+                BackoffRate: 2
+            End: true
+            InputPath: $.Item
+      - StartAt: GetFileDataInvoke
+        States:
+          GetFileDataInvoke:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke
+            OutputPath: $.Payload
+            Parameters:
+              Payload.$: $
+              FunctionName: ${GetFileDataArn}
+            Retry:
+              - ErrorEquals:
+                  - Lambda.ServiceException
+                  - Lambda.AWSLambdaException
+                  - Lambda.SdkClientException
+                IntervalSeconds: 2
+                MaxAttempts: 6
+                BackoffRate: 2
+            End: true
+            InputPath: $.Item
+    Next: PutExifDataMap
+  PutExifDataMap:
+    Type: Map
+    Iterator:
+      StartAt: DdbSerializerInvoke
+      States:
+        DdbSerializerInvoke:
+          Type: Task
+          Resource: arn:aws:states:::lambda:invoke
+          OutputPath: $.Payload
+          Parameters:
+            Payload.$: $
+            FunctionName: ${DdbSerializerArn}
+          Retry:
+            - ErrorEquals:
+                - Lambda.ServiceException
+                - Lambda.AWSLambdaException
+                - Lambda.SdkClientException
+              IntervalSeconds: 2
+              MaxAttempts: 6
+              BackoffRate: 2
+          Next: DdbPutItem
+        DdbPutItem:
+          Type: Task
+          Resource: arn:aws:states:::dynamodb:putItem
+          Parameters:
+            TableName: ${DdbTableName}
+            Item.$: $.Item
+          End: true
+    End: true

@@ -76,7 +76,6 @@ States:
         BackoffRate: 2
     OutputPath: $.Payload
     Next: HasStateToken
-
   UpdateItem:
     Type: Task
     Resource: arn:aws:states:::dynamodb:updateItem

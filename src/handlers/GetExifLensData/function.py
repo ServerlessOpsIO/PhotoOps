@@ -45,7 +45,7 @@ def _get_exif_lens_data(exif_data: ExifDataItem) -> LensExifData:
     lens_data['auto_focus'] = True if lens_data['camera_maker_type'][0] == 'AF' else False
     lens_data['vibration_reduction'] = True if 'VR' in lens_data['camera_maker_type'] else False
 
-    # These are in LensData which I don't know how to read
+    # FIXME: We can get these out of MakerNotes or EXIF IFD.
     lens_data['make'] = None
     lens_data['model'] = None
     lens_data['serial_number'] = None
