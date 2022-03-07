@@ -77,7 +77,9 @@ class Ifd:
         digital_zoom_ratio: Optional[float] = None
         body_serial_number: Optional[str] = None
         lens_specification: Optional[List[int]] = None
+        lens_make: Optional[str] = None
         lens_model: Optional[str] = None
+        lens_serial_number: Optional[str] = None
 
         maker_note: Optional[List[int]] = field(default=None, metadata=config(field_name="MakerNote"))
 
