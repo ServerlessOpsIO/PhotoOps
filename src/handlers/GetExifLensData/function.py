@@ -69,12 +69,10 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
         **{
             'pk': pk,
             'sk': sk,
-            **lens_data.__dict__
+            **asdict(lens_data)
         }
     )
 
-    response = {'Item': lens_data_item}
-
-    LOGGER.info('Response', extra={"message_object": response})
-
-    return Response(**response)
+    response = Response(**{'Item': lens_data_item})
+    LOGGER.info('Response', extra={"message_object": asdict(response)})
+    return response

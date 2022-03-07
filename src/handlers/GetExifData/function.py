@@ -135,8 +135,7 @@ def handler(event: Dict[str, Any], context: LambdaContext) -> Response:
             'exif': exif_data
         }
     )
-    response = {'Item': exif_data_item}
 
-    LOGGER.info('Response', extra={"message_object": response})
-
-    return Response(**response)
+    response = Response(**{'Item': exif_data_item})
+    LOGGER.info('Response', extra={"message_object": asdict(response)})
+    return response
