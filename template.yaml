@@ -120,34 +120,6 @@ Resources:
               Action:
                 - sts:AssumeRole
               Resource: !GetAtt PhotoOpsCrossAccountIamRole.Arn
-      Events:
-        EventBridgeEvent:
-          Type: EventBridgeRule
-          Properties:
-            EventBusName: !Ref EventBus
-            InputPath: "$.detail.responsePayload"
-            Pattern:
-              source: [ "lambda" ]
-              detail-type: [ "Lambda Function Invocation Result - Success" ]
-              detail:
-                requestPayload:
-                  Records:
-                    Sns:
-                      TopicArn: [ !Ref PhotoOpsIngestTopic ]
-                responsePayload:
-                  Records:
-                    eventSource: [ "aws:s3" ]
-                    # FIXME: Is this all the possible event names?
-                    eventName:
-                      - prefix: "ObjectCreated:"
-      EventInvokeConfig:
-        DestinationConfig:
-          OnSuccess:
-            Type: EventBridge
-            Destination: !GetAtt EventBus.Arn
-          OnFailure:
-            Type: 'SQS'
-            Destination: !GetAtt GetExifDataDlqQueue.Arn
 
   GetExifDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -164,30 +136,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      Events:
-        EventBridgeEvent:
-          Type: EventBridgeRule
-          Properties:
-            EventBusName: !Ref EventBus
-            InputPath: "$.detail.responsePayload.Item"
-            Pattern:
-              source: [ "lambda" ]
-              detail-type: [ "Lambda Function Invocation Result - Success" ]
-              detail:
-                responsePayload:
-                  Item:
-                    pk:
-                      - exists: true
-                    sk:
-                      - 'exif#v0'
-      EventInvokeConfig:
-        DestinationConfig:
-          OnSuccess:
-            Type: EventBridge
-            Destination: !GetAtt EventBus.Arn
-          OnFailure:
-            Type: 'SQS'
-            Destination: !GetAtt GetExifCameraDataDlqQueue.Arn
 
   GetExifCameraDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -204,30 +152,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      Events:
-        EventBridgeEvent:
-          Type: EventBridgeRule
-          Properties:
-            EventBusName: !Ref EventBus
-            InputPath: "$.detail.responsePayload.Item"
-            Pattern:
-              source: [ "lambda" ]
-              detail-type: [ "Lambda Function Invocation Result - Success" ]
-              detail:
-                responsePayload:
-                  Item:
-                    pk:
-                      - exists: true
-                    sk:
-                      - 'exif#v0'
-      EventInvokeConfig:
-        DestinationConfig:
-          OnSuccess:
-            Type: EventBridge
-            Destination: !GetAtt EventBus.Arn
-          OnFailure:
-            Type: 'SQS'
-            Destination: !GetAtt GetExifLensDataDlqQueue.Arn
 
   GetExifLensDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -244,30 +168,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      Events:
-        EventBridgeEvent:
-          Type: EventBridgeRule
-          Properties:
-            EventBusName: !Ref EventBus
-            InputPath: "$.detail.responsePayload.Item"
-            Pattern:
-              source: [ "lambda" ]
-              detail-type: [ "Lambda Function Invocation Result - Success" ]
-              detail:
-                responsePayload:
-                  Item:
-                    pk:
-                      - exists: true
-                    sk:
-                      - 'exif#v0'
-      EventInvokeConfig:
-        DestinationConfig:
-          OnSuccess:
-            Type: EventBridge
-            Destination: !GetAtt EventBus.Arn
-          OnFailure:
-            Type: 'SQS'
-            Destination: !GetAtt GetExifImageDataDlqQueue.Arn
 
   GetExifImageDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -284,30 +184,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      Events:
-        EventBridgeEvent:
-          Type: EventBridgeRule
-          Properties:
-            EventBusName: !Ref EventBus
-            InputPath: "$.detail.responsePayload.Item"
-            Pattern:
-              source: [ "lambda" ]
-              detail-type: [ "Lambda Function Invocation Result - Success" ]
-              detail:
-                responsePayload:
-                  Item:
-                    pk:
-                      - exists: true
-                    sk:
-                      - 'exif#v0'
-      EventInvokeConfig:
-        DestinationConfig:
-          OnSuccess:
-            Type: EventBridge
-            Destination: !GetAtt EventBus.Arn
-          OnFailure:
-            Type: 'SQS'
-            Destination: !GetAtt GetExifLocationDataDlqQueue.Arn
 
   GetExifLocationDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -324,30 +200,6 @@ Resources:
       Timeout: 3
       Layers:
         - !Ref CommonLayer
-      Events:
-        EventBridgeEvent:
-          Type: EventBridgeRule
-          Properties:
-            EventBusName: !Ref EventBus
-            InputPath: "$.detail.responsePayload.Item"
-            Pattern:
-              source: [ "lambda" ]
-              detail-type: [ "Lambda Function Invocation Result - Success" ]
-              detail:
-                responsePayload:
-                  Item:
-                    pk:
-                      - exists: true
-                    sk:
-                      - 'exif#v0'
-      EventInvokeConfig:
-        DestinationConfig:
-          OnSuccess:
-            Type: EventBridge
-            Destination: !GetAtt EventBus.Arn
-          OnFailure:
-            Type: 'SQS'
-            Destination: !GetAtt GetFileDataDlqQueue.Arn
 
   GetFileDataDlqQueue:
     Type: AWS::SQS::Queue
@@ -518,6 +370,85 @@ Resources:
                 Action:
                   - "s3:ListBucket"
                 Resource: "arn:aws:s3:::*/"
+
+
+  GetExifDataStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: src/state-machines/get-exif-data.yaml
+      DefinitionSubstitutions:
+        DdbTableName: !Ref DynamoDBTable
+        GetExifDataArn: !GetAtt GetExifData.Arn
+        GetExifCameraDataArn: !GetAtt GetExifCameraData.Arn
+        GetExifImageDataArn: !GetAtt GetExifImageData.Arn
+        GetExifLensDataArn: !GetAtt GetExifLensData.Arn
+        GetExifLocationDataArn: !GetAtt GetExifLocationData.Arn
+        GetFileDataArn: !GetAtt GetFileData.Arn
+        DdbSerializerArn: !GetAtt DdbSerializer.Arn
+      Tracing:
+        Enabled: true
+      Logging:
+        IncludeExecutionData: true
+        Level: ERROR
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt GetExifDataLogGroup.Arn
+      Events:
+        EventBridgeRule:
+          Type: EventBridgeRule
+          Properties:
+            EventBusName: !Ref EventBus
+            Pattern:
+              source: [ "lambda" ]
+              detail-type: [ "Lambda Function Invocation Result - Success" ]
+              detail:
+                requestPayload:
+                  Records:
+                    Sns:
+                      TopicArn: [ !Ref PhotoOpsIngestTopic ]
+                responsePayload:
+                  Records:
+                    eventSource: [ "aws:s3" ]
+                    # FIXME: Is this all the possible event names?
+                    eventName:
+                      - prefix: "ObjectCreated:"
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:PutItem"
+            Resource:
+              - !GetAtt DynamoDBTable.Arn
+          - Effect: Allow
+            Action:
+              - "lambda:InvokeFunction"
+            Resource:
+              - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-*"
+          - Effect: Allow
+            Action:
+              - logs:CreateLogDelivery
+              - logs:GetLogDelivery
+              - logs:UpdateLogDelivery
+              - logs:DeleteLogDelivery
+              - logs:ListLogDeliveries
+              - logs:PutResourcePolicy
+              - logs:DescribeResourcePolicies
+              - logs:DescribeLogGroups
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:DescribeLogStream
+              - logs:PutLogEvents
+            Resource:
+              - !GetAtt GetExifDataLogGroup.Arn
+
+
+  GetExifDataLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/step-functions/GetExifData-${ServiceEnv}'
+      RetentionInDays: 7
 
 
   CreateJpegStateMachine:
