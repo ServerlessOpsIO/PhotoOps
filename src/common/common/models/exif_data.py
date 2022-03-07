@@ -164,6 +164,8 @@ class Ifd:
         opcode_list_2: Optional[List[int]] = field(default=None, metadata=config(field_name="OpcodeList2"))
         opcode_list_3: Optional[List[int]] = field(default=None, metadata=config(field_name="OpcodeList3"))
         cache_version: Optional[int] = None
+        nikon_nef_info: Optional[List[int]] = field(default=None, metadata=config(field_name="NikonNEFInfo"))
+        nikon_nef_sub_ifd1: Optional[List[int]] = field(default=None, metadata=config(field_name="NikonNEFSubIfd1"))
 
         # Unknown
         tag0x7001: Optional[List[int]] = None
