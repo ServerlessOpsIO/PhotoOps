@@ -158,7 +158,9 @@
                         1.8,
                         1.8
                     ],
+                    "lens_make": null,
                     "lens_model": "50.0 mm f/1.8",
+                    "lens_serial_number": null,
                     "maker_note": null
                 },
                 "gps_ifd": null,
