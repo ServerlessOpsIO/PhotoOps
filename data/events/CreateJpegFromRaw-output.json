@@ -5,7 +5,7 @@
     "s3_bucket": "cache-bucket",
     "s3_object_key": "cache/photoopsai-bucket/images/test_image_nikon.NEF.jpg",
     "expiration_date_time": "2021-10-29 17:43:28.757278",
-    "size": 10188662,
+    "size": 10223214,
     "original_s3_bucket": "photoopsai-bucket",
     "original_s3_object_key": "images/test_image_nikon.NEF"
   }
