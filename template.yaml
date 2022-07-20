@@ -630,7 +630,10 @@ Resources:
       LogConfig:
         CloudWatchLogsRoleArn: !GetAtt AppSyncGqlCwLogsIamRole.Arn
         FieldLogLevel: ALL
-      XrayEnabled: true
+      # FIXME: Appears to be an issue on AWS side with servce role being created behind
+      # the scenes.
+      # ref. https://github.com/aws/aws-cdk/issues/16598
+      #XrayEnabled: true
 
   AppSyncGqlCwLogsIamRole:
     Type: "AWS::IAM::Role"
