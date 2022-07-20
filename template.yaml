@@ -621,6 +621,55 @@ Resources:
       BillingMode: "PAY_PER_REQUEST"
 
 
+  AppSyncGqlApi:
+    Type: "AWS::AppSync::GraphQLApi"
+    Properties:
+      Name: !Ref AWS::StackName
+      # FIXME: Using until we finally have something permanent built.
+      AuthenticationType: API_KEY
+      LogConfig:
+        CloudWatchLogsRoleArn: !GetAtt AppSyncGqlCwLogsIamRole.Arn
+        FieldLogLevel: ALL
+      XrayEnabled: true
+
+  AppSyncGqlCwLogsIamRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: appsync.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: "CwLogs"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: "CwLogDelivery"
+                Effect: "Allow"
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+
+  # FIXME: Using until we finally have something permanent built.
+  AppSyncGqlApiKey:
+    Type: AWS::AppSync::ApiKey
+    Properties:
+      Description:
+        Fn::Sub:
+          - "API key for ${GraphQLApiApiId} at ${GraphQLApiGraphQLUrl}"
+          - GraphQLApiApiId: !GetAtt AppSyncGqlApi.ApiId
+            GraphQLApiGraphQLUrl: !GetAtt AppSyncGqlApi.GraphQLUrl
+      ApiId: !GetAtt AppSyncGqlApi.ApiId
+      # FIXME: 365 days; will update the key on every deploy. This whole thing is not ideal.
+      Expires: 1689884857
+
+
   # For CloudWatch Alarms
   CloudWatchTopic:
     Type: AWS::SNS::Topic
@@ -683,6 +732,23 @@ Resources:
       Description: "CloudWatch SNS Topic ARN"
       Value: !Ref CloudWatchTopic
 
+  AppSyncGqlApiUrl:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/PhotoOpsAI/${ServiceName}/${ServiceEnv}/AppSyncGqlApiUrl"
+      Type: String
+      Description: "AppSync API URL"
+      Value: !GetAtt AppSyncGqlApi.GraphQLUrl
+
+  AppSyncGqlApiKeyValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/PhotoOpsAI/${ServiceName}/${ServiceEnv}/AppSyncGqlApiKeyValue"
+      Type: String
+      Description: "AppSync API key"
+      Value: !GetAtt AppSyncGqlApiKey.ApiKey
+
+
 Outputs:
   PhotoOpsIngestTopicArn:
     Description: "ARN of PhotoOps Ingest topic ARN"
@@ -704,3 +770,10 @@ Outputs:
     Description: "ARN of CloudWatch topic"
     Value: !Ref CloudWatchTopic
 
+  AppSyncGqlApiUrl:
+    Description: "AppSync API URL"
+    Value: !GetAtt AppSyncGqlApi.GraphQLUrl
+
+  AppSyncGqlApiKeyValue:
+    Description: "AppSync API key"
+    Value: !GetAtt AppSyncGqlApiKey.ApiKey
