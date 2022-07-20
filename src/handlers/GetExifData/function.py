@@ -7,6 +7,7 @@
 import os
 
 from dataclasses import asdict, dataclass
+import io
 from tempfile import TemporaryFile
 from typing import Any, Dict, Tuple
 
@@ -59,7 +60,7 @@ def _get_exif_data(s3_bucket: str, s3_object: str, object_size: int) -> Tuple[An
         # FIXME: Need to clear temporary object
         s3_cross_account_client.download_fileobj(s3_bucket, s3_object, image)
         image.seek(0)
-        ft: filetype.Type = filetype.guess(image)
+        ft: filetype.Type = filetype.guess(image.read())
         # FIXME: hdr has an open file handle. Will closing it reduce memory
         # footprint? Should ExifRead close it? Probably not the more I think of it. That
         # means JPEG handling, which closes it, is broken. Perhaps we delete the object at
