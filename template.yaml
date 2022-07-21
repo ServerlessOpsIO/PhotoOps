@@ -712,6 +712,25 @@ Resources:
         AwsRegion: !Ref AWS::Region
         TableName: !Ref DynamoDBTable
 
+  QueryPhotoFileDataResolver:
+    Type: "AWS::AppSync::Resolver"
+    DependsOn: AppSyncGqlSchema
+    Properties:
+      ApiId: !GetAtt AppSyncGqlApi.ApiId
+      TypeName: Query
+      FieldName: photoFileData
+      DataSourceName: !GetAtt AppSyncDdbDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version" : "2017-02-28",
+            "operation" : "GetItem",
+            "key" : {
+                "pk" : $util.dynamodb.toDynamoDBJson($ctx.args.id)
+                "sk": "file#v0"
+            }
+        }
+      ResponseMappingTemplate: "$utils.toJson($ctx.result)"
+
 
   # For CloudWatch Alarms
   CloudWatchTopic:
