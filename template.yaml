@@ -726,7 +726,7 @@ Resources:
             "operation" : "GetItem",
             "key" : {
                 "pk" : $util.dynamodb.toDynamoDBJson($ctx.args.id),
-                "sk": "file#v0"
+                "sk": $util.dynamodb.toDynamoDBJson("file#v0")
             }
         }
       ResponseMappingTemplate: "$utils.toJson($ctx.result)"
