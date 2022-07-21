@@ -1,1 +1,16 @@
-schema {}
+schema {
+    query: Query
+}
+
+type Query {
+    photoFileData(id: ID!): PhotoFileData
+}
+
+type PhotoFileData {
+    id: ID!
+    file_type: String!
+    extension: String!
+    object_size: Int!
+    is_jpeg: Boolean!
+    is_raw: Boolean!
+}
