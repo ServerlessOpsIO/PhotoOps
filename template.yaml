@@ -635,6 +635,28 @@ Resources:
       # ref. https://github.com/aws/aws-cdk/issues/16598
       #XrayEnabled: true
 
+  AppSyncGqlIamRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: appsync.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: "DynamoDB"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: "DdbOps"
+                Effect: "Allow"
+                Action:
+                  - "dynamodb:*GetItem"
+                Resource: !GetAtt DynamoDBTable.Arn
+
   AppSyncGqlCwLogsIamRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -677,6 +699,18 @@ Resources:
     Properties:
       ApiId: !GetAtt AppSyncGqlApi.ApiId
       DefinitionS3Location: schema.graphql
+
+  AppSyncDdbDataSource:
+    Type: "AWS::AppSync::DataSource"
+    Properties:
+      ApiId: !GetAtt AppSyncGqlApi.ApiId
+      Name: !Sub ${AWS::StackName}-DdbTable
+      Description: !Sub "${DynamoDBTable} data source"
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt AppSyncGqlIamRole.Arn
+      DynamoDBConfig:
+        AwsRegion: !Ref AWS::Region
+        TableName: !Ref DynamoDBTable
 
 
   # For CloudWatch Alarms
