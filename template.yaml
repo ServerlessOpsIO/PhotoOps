@@ -672,6 +672,12 @@ Resources:
       # FIXME: 365 days; will update the key on every deploy. This whole thing is not ideal.
       Expires: 1689884857
 
+  AppSyncGqlSchema:
+    Type: AWS::AppSync::GraphQLSchema
+    Properties:
+      ApiId: !GetAtt AppSyncGqlApi.ApiId
+      Definition: schema.graphql
+
 
   # For CloudWatch Alarms
   CloudWatchTopic:
