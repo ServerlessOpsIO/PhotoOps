@@ -704,7 +704,7 @@ Resources:
     Type: "AWS::AppSync::DataSource"
     Properties:
       ApiId: !GetAtt AppSyncGqlApi.ApiId
-      Name: !Sub ${AWS::StackName}-DdbTable
+      Name: DdbTable
       Description: !Sub "${DynamoDBTable} data source"
       Type: AMAZON_DYNAMODB
       ServiceRoleArn: !GetAtt AppSyncGqlIamRole.Arn
