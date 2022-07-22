@@ -712,8 +712,54 @@ Resources:
         AwsRegion: !Ref AWS::Region
         TableName: !Ref DynamoDBTable
 
+  QueryPhotoCameraDataResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncGqlSchema
+    Properties:
+      ApiId: !GetAtt AppSyncGqlApi.ApiId
+      TypeName: Query
+      FieldName: photoCameraData
+      DataSourceName: !GetAtt AppSyncDdbDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version" : "2017-02-28",
+            "operation" : "GetItem",
+            "key" : {
+                "pk" : $util.dynamodb.toDynamoDBJson($ctx.args.id),
+                "sk": $util.dynamodb.toDynamoDBJson("camera#v0")
+            }
+        }
+      ResponseMappingTemplate: |
+        $util.qr($ctx.result.put("id", "$ctx.result.pk"))
+        $util.qr($ctx.result.remove("pk"))
+        $util.qr($ctx.result.remove("sk"))
+        $utils.toJson($ctx.result)
+
+  QueryPhotoExifDataResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncGqlSchema
+    Properties:
+      ApiId: !GetAtt AppSyncGqlApi.ApiId
+      TypeName: Query
+      FieldName: photoExifData
+      DataSourceName: !GetAtt AppSyncDdbDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version" : "2017-02-28",
+            "operation" : "GetItem",
+            "key" : {
+                "pk" : $util.dynamodb.toDynamoDBJson($ctx.args.id),
+                "sk": $util.dynamodb.toDynamoDBJson("exif#v0")
+            }
+        }
+      ResponseMappingTemplate: |
+        $util.qr($ctx.result.put("id", "$ctx.result.pk"))
+        $util.qr($ctx.result.remove("pk"))
+        $util.qr($ctx.result.remove("sk"))
+        $utils.toJson($ctx.result)
+
   QueryPhotoFileDataResolver:
-    Type: "AWS::AppSync::Resolver"
+    Type: AWS::AppSync::Resolver
     DependsOn: AppSyncGqlSchema
     Properties:
       ApiId: !GetAtt AppSyncGqlApi.ApiId
@@ -727,6 +773,76 @@ Resources:
             "key" : {
                 "pk" : $util.dynamodb.toDynamoDBJson($ctx.args.id),
                 "sk": $util.dynamodb.toDynamoDBJson("file#v0")
+            },
+            attributeValues:
+        }
+      ResponseMappingTemplate: |
+        $util.qr($ctx.result.put("id", "$ctx.result.pk"))
+        $util.qr($ctx.result.remove("pk"))
+        $util.qr($ctx.result.remove("sk"))
+        $utils.toJson($ctx.result)
+
+  QueryPhotoImageDataResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncGqlSchema
+    Properties:
+      ApiId: !GetAtt AppSyncGqlApi.ApiId
+      TypeName: Query
+      FieldName: photoImageData
+      DataSourceName: !GetAtt AppSyncDdbDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version" : "2017-02-28",
+            "operation" : "GetItem",
+            "key" : {
+                "pk" : $util.dynamodb.toDynamoDBJson($ctx.args.id),
+                "sk": $util.dynamodb.toDynamoDBJson("image#v0")
+            }
+        }
+      ResponseMappingTemplate: |
+        $util.qr($ctx.result.put("id", "$ctx.result.pk"))
+        $util.qr($ctx.result.remove("pk"))
+        $util.qr($ctx.result.remove("sk"))
+        $utils.toJson($ctx.result)
+
+  QueryPhotoLensDataResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncGqlSchema
+    Properties:
+      ApiId: !GetAtt AppSyncGqlApi.ApiId
+      TypeName: Query
+      FieldName: photoLensData
+      DataSourceName: !GetAtt AppSyncDdbDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version" : "2017-02-28",
+            "operation" : "GetItem",
+            "key" : {
+                "pk" : $util.dynamodb.toDynamoDBJson($ctx.args.id),
+                "sk": $util.dynamodb.toDynamoDBJson("lens#v0")
+            }
+        }
+      ResponseMappingTemplate: |
+        $util.qr($ctx.result.put("id", "$ctx.result.pk"))
+        $util.qr($ctx.result.remove("pk"))
+        $util.qr($ctx.result.remove("sk"))
+        $utils.toJson($ctx.result)
+
+  QueryPhotoLocationDataResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncGqlSchema
+    Properties:
+      ApiId: !GetAtt AppSyncGqlApi.ApiId
+      TypeName: Query
+      FieldName: photoLocationData
+      DataSourceName: !GetAtt AppSyncDdbDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version" : "2017-02-28",
+            "operation" : "GetItem",
+            "key" : {
+                "pk" : $util.dynamodb.toDynamoDBJson($ctx.args.id),
+                "sk": $util.dynamodb.toDynamoDBJson("location#v0")
             }
         }
       ResponseMappingTemplate: |
