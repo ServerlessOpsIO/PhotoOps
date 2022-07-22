@@ -3,8 +3,24 @@ schema {
 }
 
 type Query {
+    photoCameraData(id: ID!): PhotoCameraData
     photoFileData(id: ID!): PhotoFileData
+    photoImageData(id: ID!): PhotoImageData
+    photoLensData(id: ID!): PhotoLensData
+    photoLocationData(id: ID!): PhotoLocationData
 }
+
+type PhotoCameraData {
+    id: ID!
+    make: String
+    model: String
+    software: String
+    serial_number: String
+}
+
+#type PhotoExifData {
+#    id: ID!
+#}
 
 type PhotoFileData {
     id: ID!
@@ -13,4 +29,66 @@ type PhotoFileData {
     object_size: Int!
     is_jpeg: Boolean!
     is_raw: Boolean!
+}
+
+type PhotoImageData {
+    id: ID!
+    compression: String
+    length: Int
+    width: Int
+    orientation: String
+    date_time: String  # FIXME: need to revisit how we're storing time after we collect m ore samples.
+    date_time_offset: String
+    auto_focus: Boolean
+    exposure_mode: String
+    exposure_program: String
+    exposure_time: Float
+    flash: String
+    fnumber: Float
+    focal_length: Int
+    focal_length_in_35mm_film: Int
+    photographic_sensitivity: [Int]
+    light_source: String
+    metering_mode: String
+    sensing_method: String
+    sensitivity_type: String
+    contrast: String
+    gain_control: String
+    saturation: String
+    sharpness: String
+    subject_distance_range: String
+    white_balance: String
+}
+
+type PhotoLensData {
+    id: ID!
+    make: String
+    model: String
+    serial_number: String
+    min_focal: Int
+    max_focal: Int
+    min_aperture: Float
+    max_aperture_high: Float
+    max_aperture_low: Float
+    auto_focus: Boolean
+    vibration_reduction: Boolean
+    lens_maker_type: [String]
+    camera_maker_type: [String]
+    macro: Boolean
+    zoom: Boolean
+}
+
+type PhotoLocationData {
+    id: ID!
+    gps_version_id: [Int]
+    gps_latitude_ref: String
+    gps_latitude: [Float]
+    gps_longitude_ref: String
+    gps_longitude: [Float]
+    gps_altitude_ref: Int
+    gps_altitude:  Float
+    gps_time_stamp: [Float]
+    gps_satellites: String
+    gps_map_datum: String
+    gps_date: String    # FIXME: format this sanely.
 }
