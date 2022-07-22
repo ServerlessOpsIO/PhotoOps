@@ -730,7 +730,9 @@ Resources:
             }
         }
       ResponseMappingTemplate: |
-        #set ($ctx.result.id = $ctx.result.pk)
+        $util.qr($ctx.result.put("id", "$ctx.result.pk"))
+        $util.qr($ctx.result.remove("pk"))
+        $util.qr($ctx.result.remove("sk"))
         $utils.toJson($ctx.result)
 
 
