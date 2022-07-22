@@ -729,7 +729,9 @@ Resources:
                 "sk": $util.dynamodb.toDynamoDBJson("file#v0")
             }
         }
-      ResponseMappingTemplate: "$utils.toJson($ctx.result)"
+      ResponseMappingTemplate: |
+        #set ($ctx.result.id = $ctx.result.pk)
+        $utils.toJson($ctx.result)
 
 
   # For CloudWatch Alarms
